@@ -1,6 +1,5 @@
 import os
 
-
 def parse_metro_file(filename):
     graph = {}
     station_names = {}
@@ -10,12 +9,14 @@ def parse_metro_file(filename):
 
     # Skip header lines until first 'V ' or 'E '
     data_lines = []
-    started = False
-    for line in lines:
-        if line.startswith('V ') or line.startswith('E '):
-            started = True
-        if started:
-            data_lines.append(line)
+    for line in range (len(lines)):
+        if line > 14:
+            if lines[line].startswith('V ') or lines[line].startswith('E '):
+                data_lines.append(lines[line])
+            else:
+                continue
+        else:
+            continue
 
     # Parse station names, lines, and edges
     for line in data_lines:
