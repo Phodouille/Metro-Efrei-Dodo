@@ -5,14 +5,17 @@ import networkx as nx
 def build_nx_graph(graph):
     G = nx.Graph()
     for station, neighbors in graph.items():
-        for neighbor, weight in neighbors:
+        for neighbor_tuple in neighbors:
+            # Prend toujours le premier et le dernier élément du tuple (id voisin, poids)
+            neighbor = neighbor_tuple[0]
+            weight = neighbor_tuple[-1]
             G.add_edge(station, neighbor, weight=weight)
     return G
 
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, "..", "data", "metro.txt")
-    graph, _ = parse_metro_file(data_path)
+    graph, station_names, station_lines = parse_metro_file(data_path)
     G = build_nx_graph(graph)
     if nx.is_connected(G):
         print("Le graphe est connexe")
@@ -20,5 +23,5 @@ if __name__ == "__main__":
         print("Le graphe n'est pas connexe")
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, "..", "data", "metro.txt")
-    graph, _ = parse_metro_file(data_path)
-  
+    graph, station_names, station_lines = parse_metro_file(data_path)
+
