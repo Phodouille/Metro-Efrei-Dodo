@@ -4,6 +4,7 @@ import os
 def parse_metro_file(filename):
     graph = {}
     station_names = {}
+    station_lines = {}
     with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
@@ -16,19 +17,23 @@ def parse_metro_file(filename):
         if started:
             data_lines.append(line)
 
-    # Parse station names and edges
+    # Parse station names, lines, and edges
     for line in data_lines:
         line = line.strip()
         if not line or line.startswith('#'):
             continue
         if line.startswith('V '):
-            # V num_sommet nom_sommet ...
+            # V num_sommet nom_sommet ;line_number ;...
             parts = line.split(' ', 2)
             if len(parts) < 3:
                 continue
             station_id = parts[1].zfill(4)
-            name_part = parts[2].split(';')[0].strip()
+            # Split the rest by ';'
+            rest = parts[2].split(';')
+            name_part = rest[0].strip()
+            line_number = rest[1].strip() if len(rest) > 1 else None
             station_names[station_id] = name_part
+            station_lines[station_id] = line_number
         elif line.startswith('E '):
             parts = line.split()
             if len(parts) != 4:
@@ -40,9 +45,12 @@ def parse_metro_file(filename):
                 weight = float(weight)
             except ValueError:
                 continue
-            graph.setdefault(station1, []).append((station2, weight))
-            graph.setdefault(station2, []).append((station1, weight))
-    return graph, station_names
+            # Add line number before weight in the tuple
+            line1 = station_lines.get(station1)
+            line2 = station_lines.get(station2)
+            graph.setdefault(station1, []).append((station2, line2, weight))
+            graph.setdefault(station2, []).append((station1, line1, weight))
+    return graph, station_names, station_lines
 
 
 def visualize_graph(graph, station_names):
@@ -52,7 +60,7 @@ def visualize_graph(graph, station_names):
     G = nx.Graph()
     # Par défaut : IDs
     for station_id, neighbors in graph.items():
-        for neighbor_id, weight in neighbors:
+        for neighbor_id, line_number, weight in neighbors:
             G.add_edge(station_id, neighbor_id, weight=weight)
 
     plt.figure(figsize=(16, 16))
@@ -70,7 +78,7 @@ def visualize_graph_by_name(graph, station_names):
 
     G = nx.Graph()
     for station_id, neighbors in graph.items():
-        for neighbor_id, weight in neighbors:
+        for neighbor_id, line_number, weight in neighbors:
             G.add_edge(
                 station_names.get(station_id, station_id),
                 station_names.get(neighbor_id, neighbor_id),
@@ -89,11 +97,11 @@ def visualize_graph_by_name(graph, station_names):
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, "..", "data", "metro.txt")
-    graph, station_names = parse_metro_file(data_path)
+    graph, station_names, station_lines = parse_metro_file(data_path)
     print(f"Nombre de stations: {len(graph)}")
     # Affichage avec IDs 
     for station, neighbors in list(graph.items())[:5]:
-        print(f"{station}: {[(n, w) for n, w in neighbors]}")
+        print(f"{station}: {[(n, l, w) for n, l, w in neighbors]}, line: {station_lines.get(station)}")
     visualize_graph(graph, station_names)
     # Affichage avec noms
     visualize_graph_by_name(graph, station_names)
