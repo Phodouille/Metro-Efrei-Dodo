@@ -101,7 +101,7 @@ if __name__ == "__main__":
     print(f"Nombre de stations: {len(graph)}")
     # Affichage avec IDs 
     for station, neighbors in list(graph.items())[:5]:
-        print(f"{station}: {[(n, l, w) for n, l, w in neighbors]}, line: {station_lines.get(station)}")
+        print(f"Line: {station_lines.get(station)} : {station}: {[(n, l, w) for n, l, w in neighbors]}")
     visualize_graph(graph, station_names)
     # Affichage avec noms
     visualize_graph_by_name(graph, station_names)
