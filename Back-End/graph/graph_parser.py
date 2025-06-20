@@ -20,25 +20,18 @@ def parse_metro_file(filename):
 
     # Parse station names, lines, and edges
     for line in data_lines:
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
         if line.startswith('V '):
             # V num_sommet nom_sommet ;line_number ;...
             parts = line.split(' ', 2)
-            if len(parts) < 3:
-                continue
             station_id = parts[1].zfill(4)
             # Split the rest by ';'
             rest = parts[2].split(';')
             name_part = rest[0].strip()
-            line_number = rest[1].strip() if len(rest) > 1 else None
+            line_number = rest[1].strip() 
             station_names[station_id] = name_part
             station_lines[station_id] = line_number
         elif line.startswith('E '):
             parts = line.split()
-            if len(parts) != 4:
-                continue
             _, station1, station2, weight = parts
             station1 = station1.zfill(4)
             station2 = station2.zfill(4)
@@ -52,7 +45,6 @@ def parse_metro_file(filename):
             graph.setdefault(station1, []).append((station2, line2, weight))
             graph.setdefault(station2, []).append((station1, line1, weight))
     return graph, station_names, station_lines
-
 
 def visualize_graph(graph, station_names):
     import networkx as nx
