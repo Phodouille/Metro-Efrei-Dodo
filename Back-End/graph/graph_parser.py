@@ -46,7 +46,8 @@ def parse_metro_file(filename):
             graph.setdefault(station2, []).append((station1, line1, weight))
     return graph, station_names, station_lines
 
-def visualize_graph(graph, station_names):
+# See a non-directed graph with only the station ID
+def visualize_graph(graph):
     import networkx as nx
     import matplotlib.pyplot as plt
 
@@ -93,8 +94,8 @@ if __name__ == "__main__":
     graph, station_names, station_lines = parse_metro_file(data_path)
     print(f"Nombre de stations: {len(graph)}")
     # Affichage avec IDs 
-    for station, neighbors in list(graph.items())[:5]:
+    for station, neighbors in list(graph.items())[:]:
         print(f"Line: {station_lines.get(station)} : {station}: {[(n, l, w) for n, l, w in neighbors]}")
-    visualize_graph(graph, station_names)
+    visualize_graph(graph)
     # Affichage avec noms
     visualize_graph_by_name(graph, station_names)
