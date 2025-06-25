@@ -1,4 +1,5 @@
 import os
+import mysql.connector
 
 def parse_metro_file(filename):
     graph = {}
@@ -87,15 +88,115 @@ def visualize_graph_by_name(graph, station_names):
     plt.show()
 
 
+def insert_into_mysql(graph, station_names, station_lines, db_config):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    # Créer les tables si elles n'existent pas
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS stations (
+            id VARCHAR(8) PRIMARY KEY,
+            name VARCHAR(255),
+            line VARCHAR(16)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS edges (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            station1 VARCHAR(8),
+            station2 VARCHAR(8),
+            line1 VARCHAR(16),
+            line2 VARCHAR(16),
+            weight FLOAT,
+            FOREIGN KEY (station1) REFERENCES stations(id),
+            FOREIGN KEY (station2) REFERENCES stations(id)
+        )
+    """)
+
+    # Insérer les stations
+    for station_id, name in station_names.items():
+        line = station_lines.get(station_id)
+        cursor.execute("""
+            INSERT IGNORE INTO stations (id, name, line) VALUES (%s, %s, %s)
+        """, (station_id, name, line))
+
+    # Insérer les arêtes (edges)
+    inserted = set()
+    for station_id, neighbors in graph.items():
+        for neighbor_id, line_number, weight in neighbors:
+            key = tuple(sorted([station_id, neighbor_id]))
+            if key in inserted:
+                continue
+            line1 = station_lines.get(station_id)
+            line2 = station_lines.get(neighbor_id)
+            cursor.execute("""
+                INSERT INTO edges (station1, station2, line1, line2, weight)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (station_id, neighbor_id, line1, line2, weight))
+            inserted.add(key)
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def load_graph_from_mysql(db_config):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    # Charger les stations
+    cursor.execute("SELECT id, name, line FROM stations")
+    station_names = {}
+    station_lines = {}
+    for row in cursor.fetchall():
+        station_names[row['id']] = row['name']
+        station_lines[row['id']] = row['line']
+
+    # Charger les arêtes sans doublons
+    cursor.execute("SELECT station1, station2, line1, line2, weight FROM edges")
+    graph = {}
+    for row in cursor.fetchall():
+        s1 = row['station1']
+        s2 = row['station2']
+        l1 = row['line1']
+        l2 = row['line2']
+        w = row['weight']
+        # Utilisation d'un set pour garantir l'unicité
+        graph.setdefault(s1, set()).add((s2, l2, w))
+        graph.setdefault(s2, set()).add((s1, l1, w))
+
+    # Convertir les sets en listes pour compatibilité avec le reste du code
+    graph = {k: list(v) for k, v in graph.items()}
+
+    cursor.close()
+    conn.close()
+    return graph, station_names, station_lines
+
 # Exemple d'utilisation
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(base_dir, "..", "data", "metro.txt")
-    graph, station_names, station_lines = parse_metro_file(data_path)
+    db_config = {
+        'host': 'localhost',
+        'user': 'root',
+        'password': 'admin',
+        'database': 'metroefreidodo'
+    }
+
+    # Choisir la source des données
+    USE_DB = True  # Passe à False pour utiliser le fichier
+
+    if USE_DB:
+        graph, station_names, station_lines = load_graph_from_mysql(db_config)
+    else:
+        graph, station_names, station_lines = parse_metro_file(data_path)
+
     print(f"Nombre de stations: {len(graph)}")
-    # Affichage avec IDs 
     for station, neighbors in list(graph.items())[:]:
-        print(f"Line: {station_lines.get(station)} : {station}: {[(n, l, w) for n, l, w in neighbors]}")
+        unique_neighbors = set((n, l, w) for n, l, w in neighbors)
+        print(f"Line: {station_lines.get(station)} : {station}: {list(unique_neighbors)}")
+
     visualize_graph(graph)
-    # Affichage avec noms
     visualize_graph_by_name(graph, station_names)
+
+    # Si tu veux insérer à nouveau dans la base, décommente la ligne suivante :
+    # insert_into_mysql(graph, station_names, station_lines, db_config)
