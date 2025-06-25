@@ -1,5 +1,6 @@
 import os
 import mysql.connector
+import pickle
 
 def parse_metro_file(filename):
     graph = {}
@@ -171,6 +172,14 @@ def load_graph_from_mysql(db_config):
     conn.close()
     return graph, station_names, station_lines
 
+def save_graph_to_pickle(graph, station_names, station_lines, pickle_path):
+    with open(pickle_path, 'wb') as f:
+        pickle.dump((graph, station_names, station_lines), f)
+
+def load_graph_from_pickle(pickle_path):
+    with open(pickle_path, 'rb') as f:
+        return pickle.load(f)
+
 # Exemple d'utilisation
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -181,14 +190,21 @@ if __name__ == "__main__":
         'password': 'admin',
         'database': 'metroefreidodo'
     }
+    # Place le pickle dans le dossier data
+    pickle_path = os.path.join(base_dir, "..", "data", "metro_graph.pkl")
 
     # Choisir la source des données
     USE_DB = True  # Passe à False pour utiliser le fichier
 
-    if USE_DB:
-        graph, station_names, station_lines = load_graph_from_mysql(db_config)
+    # Utilisation du pickle si disponible, sinon création et sauvegarde
+    if os.path.exists(pickle_path):
+        graph, station_names, station_lines = load_graph_from_pickle(pickle_path)
     else:
-        graph, station_names, station_lines = parse_metro_file(data_path)
+        if USE_DB:
+            graph, station_names, station_lines = load_graph_from_mysql(db_config)
+        else:
+            graph, station_names, station_lines = parse_metro_file(data_path)
+        save_graph_to_pickle(graph, station_names, station_lines, pickle_path)
 
     print(f"Nombre de stations: {len(graph)}")
     for station, neighbors in list(graph.items())[:]:

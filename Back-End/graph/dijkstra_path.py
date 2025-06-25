@@ -1,4 +1,5 @@
-from graph_parser import load_graph_from_mysql
+from graph_parser import load_graph_from_pickle
+import os
 import networkx as nx
 
 def build_nx_graph(graph):
@@ -9,13 +10,9 @@ def build_nx_graph(graph):
     return G
 
 if __name__ == "__main__":
-    db_config = {
-        'host': 'localhost',
-        'user': 'root',
-        'password': 'admin',
-        'database': 'metroefreidodo'
-    }
-    graph, station_names, station_lines = load_graph_from_mysql(db_config)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    pickle_path = os.path.join(base_dir, "..", "data", "metro_graph.pkl")
+    graph, station_names, station_lines = load_graph_from_pickle(pickle_path)
     G = build_nx_graph(graph)
     start = '0000'
     end = '0158'
@@ -23,6 +20,9 @@ if __name__ == "__main__":
         path = nx.dijkstra_path(G, start, end, weight='weight')
         cost = nx.dijkstra_path_length(G, start, end, weight='weight')
         print(f"Chemin le plus court de {start} à {end} (coût {cost}):")
+        print(" -> ".join(path))
+    except nx.NetworkXNoPath:
+        print("Aucun chemin trouvé.")
         print(" -> ".join(path))
     except nx.NetworkXNoPath:
         print("Aucun chemin trouvé.")
