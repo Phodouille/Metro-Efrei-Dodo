@@ -81,75 +81,71 @@
 
   <!-- Vue app -->
   <script>
-    const app = Vue.createApp({
-      data() {
-        return {
-          stations: [],
-          from: '',
-          to: '',
-          routes: [],
-          selectedRoute: 0,
-          map: null,
-          polyline: null,
-        };
-      },
-      mounted() {
-        this.fetchStations();
-        this.initMap();
-      },
-      methods: {
-        fetchStations() {
-          fetch("http://127.0.0.1:5000/api/stations")
-            .then(res => res.json())
-            .then(data => {
-              this.stations = data;
-            });
-        },
-        searchRoutes() {
-          if (!this.from || !this.to) return;
-
-          fetch("http://127.0.0.1:5000/api/shortest_path", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ from: this.from, to: this.to }),
-          })
+  const app = Vue.createApp({
+    data() {
+      return {
+        stations: [],
+        from: '',
+        to: '',
+        routes: [],
+        selectedRoute: 0,
+        map: null,
+        polyline: null,
+      };
+    },
+    mounted() {
+      this.fetchStations();
+      this.initMap();
+    },
+    methods: {
+      fetchStations() {
+        fetch("http://127.0.0.1:5000/api/stations")
           .then(res => res.json())
           .then(data => {
-            if (data.error) {
-              alert("Erreur : " + data.error);
-              return;
-            }
-            this.routes = [{
-              path: data.path,
-              lines: data.lines,
-              duration: data.duration,
-              coordinates: data.coordinates
-            }];
-            this.selectedRoute = 0;
-            this.showRouteOnMap(data.coordinates);
+            this.stations = data;
           });
-        },
-        selectRoute(index) {
-          this.selectedRoute = index;
-          const coords = this.routes[index].coordinates;
-          this.showRouteOnMap(coords);
-        },
-        initMap() {
-          this.map = L.map("map").setView([48.8566, 2.3522], 12); // Paris
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; OpenStreetMap contributors',
-          }).addTo(this.map);
-        },
-        showRouteOnMap(coords) {
-          if (this.polyline) {
-            this.map.removeLayer(this.polyline);
+      },
+      searchRoutes() {
+        if (!this.from || !this.to) return;
+
+        fetch("http://127.0.0.1:5000/api/shortest_path", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ from: this.from, to: this.to }),
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            alert("Erreur : " + data.error);
+            return;
           }
-          this.polyline = L.polyline(coords, { color: "blue" }).addTo(this.map);
-          this.map.fitBounds(this.polyline.getBounds());
+          this.routes = data;
+          this.selectedRoute = 0;
+          this.showRouteOnMap(data[0].coordinates);
+        });
+      },
+      selectRoute(index) {
+        this.selectedRoute = index;
+        const coords = this.routes[index].coordinates;
+        this.showRouteOnMap(coords);
+      },
+      initMap() {
+        this.map = L.map("map").setView([48.8566, 2.3522], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; OpenStreetMap contributors',
+        }).addTo(this.map);
+      },
+      showRouteOnMap(coords) {
+        if (this.polyline) {
+          this.map.removeLayer(this.polyline);
         }
+        this.polyline = L.polyline(coords, { color: "blue" }).addTo(this.map);
+        this.map.fitBounds(this.polyline.getBounds());
       }
-    });
-    app.mount("#app");
-  </script>
+    }
+  });
+
+  app.mount("#app");
+</script>
 </body>
 </html>
