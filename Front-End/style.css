@@ -1,0 +1,60 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f7f7f7;
+}
+
+.sidebar {
+  height: 100vh;
+  background: #000;
+  color: #fff;
+  padding-top: 2rem;
+}
+
+.sidebar a {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  margin: 1rem;
+}
+
+.route-option {
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+}
+
+.route-option.selected {
+  border: 2px solid #000;
+}
+
+.metro-icon {
+  border: 1px solid #000;
+  border-radius: 50%;
+  padding: 5px 10px;
+  margin-right: 8px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* Styles de lignes métro personnalisées */
+.line-6 {
+  background: #6ac434;
+  color: #fff;
+}
+
+.line-7 {
+  background: pink;
+  color: #fff;
+}
+
+.line-4 {
+  background: #8e44ad;
+  color: #fff;
+}
+
+.line-10 {
+  background: #f1c40f;
+  color: #000;
+}

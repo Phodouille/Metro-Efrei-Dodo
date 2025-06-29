@@ -36,3 +36,5 @@ if __name__ == "__main__":
 
     print(f"\nNombre total d’arêtes dans l’arbre : {len(mst.edges())}")
     visualize_mst(mst, station_names)
+
+
