@@ -1,5 +1,5 @@
 <template>
-    <div class="left-nav-bar">
+    <div class="left-nav-bar" @click="$emit('click')">
             <div class="left-icon-side-bar">
                 <span v-html="LeftSideBarIcon"></span>
             </div>
