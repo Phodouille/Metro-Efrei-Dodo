@@ -2,6 +2,7 @@ import os
 import csv
 import networkx as nx
 import pickle
+import matplotlib.pyplot as plt
 
 def load_metro_route_ids(gtfs_dir):
     metro_route_ids = set()
@@ -75,7 +76,7 @@ def build_graph_from_gtfs(gtfs_dir):
     stop_times, valid_stop_ids = load_stop_times(gtfs_dir, metro_trip_ids)
     stops = load_stops(gtfs_dir, valid_stop_ids)
     transfers = load_transfers(gtfs_dir, valid_stop_ids)
-    G = nx.DiGraph()
+    G = nx.Graph()  # Non orienté
 
     # Ajoute les arrêts comme nœuds
     for stop_id in stops:
@@ -86,6 +87,8 @@ def build_graph_from_gtfs(gtfs_dir):
         for i in range(len(stops_seq) - 1):
             _, stop_a, dep_a, _ = stops_seq[i]
             _, stop_b, arr_b, _ = stops_seq[i+1]
+            if stop_a == stop_b:
+                continue  # Retire les boucles
             # Calcule le temps de parcours entre les deux arrêts
             try:
                 weight = max(1, time_to_seconds(arr_b) - time_to_seconds(dep_a))
@@ -97,8 +100,13 @@ def build_graph_from_gtfs(gtfs_dir):
     for t in transfers:
         from_stop = t["from_stop_id"]
         to_stop = t["to_stop_id"]
+        if from_stop == to_stop:
+            continue  # Retire les boucles
         min_transfer_time = int(t.get("min_transfer_time", 60))
         G.add_edge(from_stop, to_stop, weight=min_transfer_time, transfer=True)
+
+    # Supprime toutes les boucles restantes (arêtes de type (n, n))
+    G.remove_edges_from(nx.selfloop_edges(G))
 
     return G
 
@@ -129,3 +137,34 @@ if __name__ == "__main__":
     # Exemple : afficher les voisins d'un arrêt
     stop_id = list(G.nodes)[0]
     print(f"Voisins de {stop_id}: {list(G.neighbors(stop_id))}")
+
+    # Affichage du graphe avec matplotlib et positions géographiques
+    try:
+        # Charger les coordonnées des stations
+        pos = {}
+        stops_path = os.path.join(gtfs_dir, "stops.txt")
+        with open(stops_path, encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                stop_id = row["stop_id"]
+                if stop_id in G.nodes and row.get("stop_lat") and row.get("stop_lon"):
+                    pos[stop_id] = (float(row["stop_lon"]), float(row["stop_lat"]))  # (x, y)
+
+        plt.figure(figsize=(12, 10))
+        nx.draw(
+            G,
+            pos=pos,
+            node_size=10,
+            node_color="blue",
+            edge_color="gray",
+            with_labels=False,
+            alpha=0.7,
+            linewidths=0.2,
+            width=0.5
+        )
+        plt.title("Graphe métro IDFM (positions géographiques)")
+        plt.xlabel("Longitude")
+        plt.ylabel("Latitude")
+        plt.show()
+    except Exception as e:
+        print(f"Erreur lors de l'affichage du graphe : {e}")
