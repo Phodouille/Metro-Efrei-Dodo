@@ -76,7 +76,7 @@ def build_graph_from_gtfs(gtfs_dir):
     stop_times, valid_stop_ids = load_stop_times(gtfs_dir, metro_trip_ids)
     stops = load_stops(gtfs_dir, valid_stop_ids)
     transfers = load_transfers(gtfs_dir, valid_stop_ids)
-    G = nx.Graph()  # Non orienté
+    G = nx.Graph()  # Assure que le graphe est non orienté
 
     # Ajoute les arrêts comme nœuds
     for stop_id in stops:
@@ -88,25 +88,54 @@ def build_graph_from_gtfs(gtfs_dir):
             _, stop_a, dep_a, _ = stops_seq[i]
             _, stop_b, arr_b, _ = stops_seq[i+1]
             if stop_a == stop_b:
-                continue  # Retire les boucles
+                continue  # Ignore les boucles
             # Calcule le temps de parcours entre les deux arrêts
             try:
                 weight = max(1, time_to_seconds(arr_b) - time_to_seconds(dep_a))
             except Exception:
-                weight = 60  # Valeur par défaut si parsing échoue
-            G.add_edge(stop_a, stop_b, weight=weight, trip_id=trip_id)
+                weight = 60
+            # Toujours garder le poids minimal pour chaque arête (stop_a, stop_b)
+            if G.has_edge(stop_a, stop_b):
+                if weight < G[stop_a][stop_b].get("weight", float("inf")):
+                    G[stop_a][stop_b]["weight"] = weight
+                    G[stop_a][stop_b]["trip_id"] = trip_id
+            else:
+                G.add_edge(stop_a, stop_b, weight=weight, trip_id=trip_id)
 
     # Ajoute les transferts
     for t in transfers:
         from_stop = t["from_stop_id"]
         to_stop = t["to_stop_id"]
         if from_stop == to_stop:
-            continue  # Retire les boucles
+            continue  # Ignore les boucles
         min_transfer_time = int(t.get("min_transfer_time", 60))
-        G.add_edge(from_stop, to_stop, weight=min_transfer_time, transfer=True)
+        # Toujours garder le poids minimal pour chaque arête (from_stop, to_stop)
+        if G.has_edge(from_stop, to_stop):
+            if min_transfer_time < G[from_stop][to_stop].get("weight", float("inf")):
+                G[from_stop][to_stop]["weight"] = min_transfer_time
+                G[from_stop][to_stop]["transfer"] = True
+        else:
+            G.add_edge(from_stop, to_stop, weight=min_transfer_time, transfer=True)
 
     # Supprime toutes les boucles restantes (arêtes de type (n, n))
-    G.remove_edges_from(nx.selfloop_edges(G))
+    G.remove_edges_from(list(nx.selfloop_edges(G)))
+
+    # S'assure qu'il n'y a qu'une seule arête entre chaque paire de stations (déjà garanti par nx.Graph)
+    # Mais on peut forcer la suppression des doublons en gardant le poids minimal :
+    edges_to_remove = []
+    for u, v, data in G.edges(data=True):
+        # Si jamais il y avait plusieurs arêtes (possible si le pickle était corrompu), on garde la plus légère
+        if G.number_of_edges(u, v) > 1:
+            min_weight = data["weight"]
+            for key in G[u][v]:
+                if G[u][v][key]["weight"] < min_weight:
+                    min_weight = G[u][v][key]["weight"]
+            # Supprime toutes les arêtes sauf celle avec le poids minimal
+            for key in list(G[u][v]):
+                if G[u][v][key]["weight"] > min_weight:
+                    edges_to_remove.append((u, v, key))
+    if hasattr(G, "remove_edges_from"):
+        G.remove_edges_from(edges_to_remove)
 
     return G
 
