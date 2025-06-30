@@ -1,11 +1,11 @@
 <template>
     <div class="left-nav-bar">
-        <div class="left-icon-side-bar">
-            <span v-html="LeftSideBarIcon"></span>
-        </div>
-        <div class="left-name-icon">
-            <p>{{ LeftNameSideBar }}</p>
-        </div>
+            <div class="left-icon-side-bar">
+                <span v-html="LeftSideBarIcon"></span>
+            </div>
+            <div class="left-name-icon">
+                <p>{{ LeftNameSideBar }}</p>
+            </div>
     </div>
 </template>
 
@@ -16,13 +16,18 @@ defineProps({
 })
 </script>
 
-<style>
+<style scoped>
 .left-nav-bar {
     display: flex;
+    margin-left: 38px;
+    align-items: center;
 }
 
 .left-name-icon {
-    margin-left: 50px;    
+    margin-left: 38px;
+    font-family: 'Open Sans';
+    font-size: 22px;   
+    font-weight: 700;
 }
 
 

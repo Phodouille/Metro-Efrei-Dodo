@@ -38,8 +38,6 @@ p {
 
 .logo-container {
     display: flex;
-    /* margin-left: 37px;
-    margin-top: 66px; */
 }
 
 </style>
