@@ -9,7 +9,9 @@ const SavedSvgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
 
 <template>
   <div class="left-side-bar">
-    <MetroGo />
+    <div class="MetroGo">
+      <MetroGo />
+    </div>
     <LeftNavBar LeftNameSideBar="Travel" :LeftSideBarIcon="TravelSvgIcon"/>
     <LeftNavBar LeftNameSideBar="Graph" :LeftSideBarIcon="GraphSvgIcon"/>
     <LeftNavBar LeftNameSideBar="Recents" :LeftSideBarIcon="RecentsSvgIcon"/>
@@ -27,7 +29,13 @@ const SavedSvgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height=
 .left-side-bar {
   background-color: blue;
   width: 275px;
-  height: 91vh;
-  position: fixed;
+  height: 98.5vh;
 }
+
+.MetroGo {
+  padding-top: 66px;
+  padding-left: 37px;
+  padding-bottom: 64px;
+}
+ 
 </style>
