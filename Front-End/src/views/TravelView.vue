@@ -3,11 +3,14 @@
         <div class="header">
             <h1>Time to ride ! <br> Where to this time ?</h1>
         </div>
+        <SearchBar />
     </div>
+    
     
 </template>
 
 <script setup>
+import SearchBar from '../components/SearchBar.vue';
 
 </script>
 
