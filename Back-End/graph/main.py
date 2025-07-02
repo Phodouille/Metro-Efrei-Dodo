@@ -1,17 +1,29 @@
-from flask import Flask, jsonify, request
+# Pour faire fonctionner ce serveur FastAPI, tu dois installer :
+#pip install fastapi uvicorn pydantic networkx
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import sys
 import os
 import json
 import networkx as nx
-from flask_cors import CORS
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from graph_parser import load_graph_from_pickle
 from dijkstra_path import compute_dijkstra_path
 from kruskal import kruskal_mst
 
-app = Flask(__name__)
-CORS(app)  # autorise les requêtes depuis Vue.js en local
+app = FastAPI()
+
+# Autorise toutes les origines (pour développement)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Chargement des fichiers
 graph_dir = os.path.dirname(os.path.abspath(__file__))
@@ -33,9 +45,13 @@ def build_nx_graph(graph_dict):
 
 G = build_nx_graph(graph)
 
-@app.route("/api/stations", methods=["GET"])
-def get_station_names():
-    return jsonify(sorted(list(station_names.values())))
+class PathRequest(BaseModel):
+    from_: str
+    to: str
+
+@app.get("/api/stations")
+async def get_station_names():
+    return sorted(list(station_names.values()))
 
 def convert_path_to_output(path):
     lines = []
@@ -59,20 +75,18 @@ def convert_path_to_output(path):
         "coordinates": coordinates
     }
 
-@app.route('/api/shortest_path', methods=['POST'])
-def shortest_path():
-    data = request.get_json()
-    from_station = data.get("from")
-    to_station = data.get("to")
+@app.post('/api/shortest_path')
+async def shortest_path(data: PathRequest):
+    from_station = data.from_
+    to_station = data.to
 
     if not from_station or not to_station:
-        return jsonify({"error": "Champs manquants"}), 400
+        raise HTTPException(status_code=400, detail="Champs manquants")
 
     try:
         from_id = name_to_id.get(from_station.lower(), from_station)
         to_id = name_to_id.get(to_station.lower(), to_station)
 
-        # Utilisation des différents algorithmes
         results = []
 
         # Dijkstra
@@ -98,10 +112,9 @@ def shortest_path():
                 seen_paths.add(path_str)
                 unique_results.append(r)
 
-        return jsonify(unique_results)
+        return unique_results
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Pour lancer : py -m uvicorn main:app --reload
