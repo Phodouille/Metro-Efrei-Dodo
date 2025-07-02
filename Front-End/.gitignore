@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Ignore GTFS data files
-Back-End/data/gtfs/
+/Back-End/data/gtfs/
