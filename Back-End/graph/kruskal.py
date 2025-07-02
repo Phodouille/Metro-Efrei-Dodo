@@ -10,6 +10,17 @@ def build_nx_graph(graph):
             G.add_edge(station, neighbor, weight=weight)
     return G
 
+def kruskal_mst(graph):
+    """Construit l'arbre couvrant minimal du graphe sous forme de dictionnaire."""
+    G = build_nx_graph(graph)
+    mst_nx = nx.minimum_spanning_tree(G, weight='weight')
+    # Convertit le MST NetworkX en dictionnaire similaire à 'graph'
+    mst_dict = {}
+    for u, v, data in mst_nx.edges(data=True):
+        mst_dict.setdefault(u, []).append((v, None, data['weight']))
+        mst_dict.setdefault(v, []).append((u, None, data['weight']))
+    return mst_dict
+
 def visualize_mst(G_mst, station_names):
     pos = nx.spring_layout(G_mst, k=0.25, iterations=100)
     plt.figure(figsize=(30, 30))
@@ -36,3 +47,5 @@ if __name__ == "__main__":
 
     print(f"\nNombre total d’arêtes dans l’arbre : {len(mst.edges())}")
     visualize_mst(mst, station_names)
+
+

@@ -194,7 +194,7 @@ if __name__ == "__main__":
     pickle_path = os.path.join(base_dir, "..", "data", "metro_graph.pkl")
 
     # Choisir la source des données
-    USE_DB = True  # Passe à False pour utiliser le fichier
+    USE_DB = False  # Passe à False pour utiliser le fichier
 
     # Utilisation du pickle si disponible, sinon création et sauvegarde
     if os.path.exists(pickle_path):
