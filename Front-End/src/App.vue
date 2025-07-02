@@ -12,7 +12,7 @@
       </div>  
     </div>
     <div class="center-side">
-      <RouterView />
+      <RouterView /> 
     </div>
   </div>
 
@@ -43,6 +43,7 @@ const SavedSvgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="35" height=
 .MetroGo {
   padding-top: 66px;
   padding-left: 37px;
+  padding-right: 66px;
   padding-bottom: 64px;
 }
  
