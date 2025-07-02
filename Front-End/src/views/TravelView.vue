@@ -4,7 +4,9 @@
             <h1>Time to ride ! <br> Where to this time ?</h1>
             <SearchBar />
         </div>
-        
+        <div class="map">
+            <Map />
+        </div>
     </div>
     
 </template>
@@ -12,6 +14,7 @@
 <script setup>
 
 import SearchBar from '../components/SearchBar.vue';
+import Map from '../components/Map.vue';
 
 </script>
 
@@ -28,9 +31,10 @@ import SearchBar from '../components/SearchBar.vue';
 
     .background {
         background-color: #F6F6F6;
+        /* background-color: aqua; */
         height: 98.5vh;
         width: 1489px;
         border-radius: 10px;
+        display: flex;
     }
-
 </style>
