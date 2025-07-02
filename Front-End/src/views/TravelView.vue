@@ -33,8 +33,9 @@ import Map from '../components/Map.vue';
         background-color: #F6F6F6;
         /* background-color: aqua; */
         height: 98.5vh;
-        width: 1489px;
+        width: 84vw;
         border-radius: 10px;
         display: flex;
+        box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.25);
     }
 </style>

@@ -111,11 +111,12 @@
 
     #map { 
         width: 47vw ;
-        height: 97vh;
+        height: 90vh;
         border-radius: 50px;
         margin-left: 36px;
         margin-top: 9px;
-        
+        box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25);
+        margin-top: 50px;
      }
 
 </style>

@@ -36,8 +36,9 @@ const SavedSvgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="35" height=
 .left-side-bar {
   display: flex;
   flex-direction: column;
-  width: 275px;
+  width: 15vw;
   height: 98.5vh;
+  /* background-color: purple; */
 }
 
 .MetroGo {
