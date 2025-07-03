@@ -47,11 +47,15 @@
                 }
                 
             }
-            const map = L.map('map').setView([48.86285403569893, 2.3448491571643038], 12);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            const map = L.map('map').setView([48.86285403569893, 2.3448491571643038], 13);
+            L.tileLayer('https://tile.jawg.io/5eafae32-aa5a-47da-a62c-ad2c1ab57fc3/{z}/{x}/{y}{r}.png?access-token=7CazPEKT76Mh5MSYbVWhLsP50NvaNbsBSbtEu3buIa0KijexNhx58EbJzu5dZ8Ox', {
+            attribution: '<a href="https://jawg.io" title="Tiles Courtesy of Jawg Maps" target="_blank">&copy; <b>Jawg</b>Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            minZoom: 0,
+            maxZoom: 22,
             }).addTo(map);
+
+           
+                    
 
 
             for (let index = 0; index < locations.length; index++) {
@@ -59,6 +63,10 @@
                 L.marker([element.lat, element.lon]).bindPopup(element.title).addTo(map);    
             }
         })
+
+        
+
+
         // .finally(function () {
         //     const map = L.map('map').setView([48.86285403569893, 2.3448491571643038], 12);
         // L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -101,6 +109,14 @@
 
 <style scoped>
 
-    #map { height: 98vh; }
+    #map { 
+        width: 47vw ;
+        height: 90vh;
+        border-radius: 50px;
+        margin-left: 36px;
+        margin-top: 9px;
+        box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25);
+        margin-top: 50px;
+     }
 
 </style>

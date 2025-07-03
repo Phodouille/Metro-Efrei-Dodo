@@ -46,10 +46,9 @@
 <style scoped>
 .rectangle {
     background-color: white;
-    width: 532px;
-    height: 225px;
+    width: 555px;
+    height: 220px;
     border-radius: 25px;
-    margin-left: 70px;
     border: 2px solid #000;
     display: flex;
     flex-direction: column;
@@ -59,6 +58,7 @@
     font-family: 'Open Sans';
     font-weight: 700;
     color: #DDD;
+    margin-top: -30px
 }
 
 .rectangle-content {
@@ -67,7 +67,8 @@
 
 .icon-input-container {
     display: flex;
-    flex-direction: row
+    flex-direction: row;
+    margin-top: -53px;
 }
 
 .input {
@@ -77,6 +78,8 @@
     outline: none;
     border-color: #BFBFBF;;
     padding-bottom: 5px;
+    width: 265px;
+    font-size: 20px;
 }
 
 .input-zone {
@@ -95,7 +98,7 @@
 }
 
 .bullet-point-container {
-    margin-top: 8px;
+    margin-top: -10px;
     margin-left: 9px;
     height: 35px;
     display: flex;
