@@ -12,7 +12,7 @@
 
     let dijkstraPointsCoordinates = {}
 
-    
+    //
 
 
     onMounted(() =>{
@@ -70,7 +70,7 @@
             console.log(stations)
         })
 
-        axios.get('https://backend-ot44.onrender.com/dijkstra/171/285')
+        axios.get('https://backend-ot44.onrender.com/dijkstra/124/285')
         .then(function (response) {
             console.log('Hello you must check here ', response.data)
             const data = response.data.path
