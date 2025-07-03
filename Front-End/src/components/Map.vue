@@ -10,10 +10,12 @@
 
     let path = []
 
+    let dijkstraPointsCoordinates = {}
+
+    
+
 
     onMounted(() =>{
-
-
 
         axios.get('https://backend-ot44.onrender.com/stations')
         .then(function (response) {
@@ -24,11 +26,10 @@
                     id: element.id,
                     lat: element.lat,
                     lon: element.lon,
-                    title: element.stop_name
+                    stop_name: element.stop_name
                 }
                 stations.push(obj)
             }
-            console.log(stations)
         })
         .finally(function(){
             for (let index = 0; index < path.length; index++) {
@@ -37,11 +38,11 @@
                     const element2 = stations[index];
                     if (element2.id === element1) {
                         const obj = {
+                            id: element2.id,
                             lat: element2.lat,
                             lon: element2.lon,
                             title: element2.stop_name
                         }
-                        console.log(obj)
                         locations.push(obj)
                     }
                 }
@@ -53,35 +54,25 @@
             minZoom: 0,
             maxZoom: 22,
             }).addTo(map);
-
-           
-                    
-
-
             for (let index = 0; index < locations.length; index++) {
                 const element = locations[index];
                 L.marker([element.lat, element.lon]).bindPopup(element.title).addTo(map);    
             }
+            locations.forEach(point => {
+                dijkstraPointsCoordinates[point.id] = [point.lat, point.lon]
+            })
+            let latlon = path.map(id => dijkstraPointsCoordinates[id])
+            const polyline = L.polyline(latlon, {
+            color: 'red',    
+            weight: 4,         
+            opacity: 0.8       
+            }).addTo(map);
+            console.log(stations)
         })
 
-        
-
-
-        // .finally(function () {
-        //     const map = L.map('map').setView([48.86285403569893, 2.3448491571643038], 12);
-        // L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        // maxZoom: 19,
-        // attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        // }).addTo(map);
-
-        // L.marker([48.86761660751826, 2.3211991599497837]).bindPopup(props.concorde).addTo(map);
-
-        // for (let index = 0; index < locations.length; index++) {
-        //     const element = locations[index];
-        //     L.marker([element.lat, element.lon]).bindPopup(element.title).addTo(map);    
-        // }
-        axios.get('https://backend-ot44.onrender.com/dijkstra/40/25')
+        axios.get('https://backend-ot44.onrender.com/dijkstra/171/285')
         .then(function (response) {
+            console.log('Hello you must check here ', response.data)
             const data = response.data.path
             for (const key in data) {
                 if (Object.prototype.hasOwnProperty.call(data, key)) {
@@ -98,6 +89,10 @@
             concorde: String
         }
     )
+console.log(locations)
+console.log(path)
+
+// console.log(`List of stations is ${stations}`)
 </script>
 
 
