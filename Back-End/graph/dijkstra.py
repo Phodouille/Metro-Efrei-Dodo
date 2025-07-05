@@ -47,4 +47,3 @@ class GraphDijkstra:
             current = parent[current]
 
         return dist[dest], path
-

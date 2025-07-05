@@ -4,6 +4,7 @@ from typing import List
 import sqlite3
 from starlette.middleware.cors import CORSMiddleware
 import os
+from connexity import is_graph_connected
 
 app = FastAPI()
 
@@ -17,6 +18,7 @@ class Stop(BaseModel):
 class DijkstraResponse(BaseModel):
     distance: float
     path: List[str]
+
 
 def get_db_connection():
     db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "mon_database.db"))
@@ -173,69 +175,68 @@ def read_stations():
             stations.append(station_dict)
     return stations
 
-@app.get("/dijkstra/{src_stopid}/{dest_stopid}", response_model=DijkstraResponse)
-def get_dijkstra(src_stopid: str, dest_stopid: str):
-    from dijkstra import GraphDijkstra
+@app.get("/dijkstra/{src}/{dest}", response_model=DijkstraResponse)
+def get_dijkstra(src: int, dest: int):
+    try:
+        from dijkstra import GraphDijkstra
+    except ImportError:
+        raise HTTPException(500, "Le module dijkstra.py est introuvable ou invalide.")
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 1) Charger tous les stop_ids uniques (attention aux stop_ids multiples séparés par virgule)
-    cursor.execute("SELECT id, stop_ids FROM stations")
-    id_to_stopid = {}
-    stopid_to_ids = {}
+    try:
+        cursor.execute("SELECT COUNT(*) FROM stations")
+        nb_vertices = cursor.fetchone()[0]
+
+        g = GraphDijkstra(nb_vertices)
+
+        cursor.execute("SELECT * FROM concatligne")
+        liaisons = [list(row) for row in cursor.fetchall()]
+
+        for u, v, w in liaisons:
+            g.graph[int(u)][int(v)] = int(w)
+            g.graph[int(v)][int(u)] = int(w)  
+
+        if src >= nb_vertices or src < 0 or dest >= nb_vertices or dest < 0:
+            raise HTTPException(status_code=400, detail="Invalid source or destination vertex")
+
+        distance, path = g.shortest_path(src, dest)
+
+        if not path or distance == float('inf'):
+            raise HTTPException(404, "Aucun chemin trouvé entre ces sommets")
+
+        # Ajoute 30 secondes par arrêt intermédiaire (nombre d'arrêts - 2)
+        nb_arrets = len(path)
+        if nb_arrets > 2:
+            distance += 0.5 * (nb_arrets - 2)
+
+        return DijkstraResponse(
+            distance=round(distance),
+            path=[str(p) for p in path],
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Erreur interne lors de l'exécution de Dijkstra : {e}")
+
+@app.get("/connexity/")
+def check_connexity():
+    """
+    Vérifie si le graphe global (concatligne) est connexe.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM stations")
+    nb_vertices = cursor.fetchone()[0]
+
+    # Création de la matrice d'adjacence
+    adj_matrix = [[0] * nb_vertices for _ in range(nb_vertices)]
+    cursor.execute("SELECT * FROM concatligne")
     for row in cursor.fetchall():
-        # Gère les cas où stop_ids contient plusieurs ids séparés par une virgule
-        for sid in str(row["stop_ids"]).split(","):
-            sid = sid.strip()
-            id_to_stopid[row["id"]] = sid
-            stopid_to_ids.setdefault(sid, []).append(row["id"])
+        u, v, w = int(row[0]), int(row[1]), int(row[2])
+        adj_matrix[u][v] = w
+        adj_matrix[v][u] = w  # Graphe non orienté
 
-    # 2) Construire le graphe sur les ids internes
-    all_ids = list(id_to_stopid.keys())
-    idx_map = {id_: idx for idx, id_ in enumerate(all_ids)}
-    inv_map = {idx: id_ for id_, idx in idx_map.items()}
-    V = len(all_ids)
-    g = GraphDijkstra(V)
-
-    cursor.execute("SELECT departure_stop_id, arrival_stop_id, duration FROM poidsligne")
-    for dep_stopid, arr_stopid, duration in cursor.fetchall():
-        for u in stopid_to_ids.get(dep_stopid, []):
-            for v in stopid_to_ids.get(arr_stopid, []):
-                ui, vi = idx_map[u], idx_map[v]
-                g.graph[ui][vi] = float(duration)
-                g.graph[vi][ui] = float(duration)
-
-    # 3) Trouver tous les ids internes pour src_stopid et dest_stopid
-    src_ids = stopid_to_ids.get(src_stopid, [])
-    dest_ids = stopid_to_ids.get(dest_stopid, [])
-    if not src_ids or not dest_ids:
-        raise HTTPException(400, f"stop_id '{src_stopid}' ou '{dest_stopid}' inconnu")
-
-    # 4) Appliquer Dijkstra sur tous les couples (src_id, dest_id) pour trouver le plus court chemin
-    best_path = None
-    best_distance = None
-    for src in src_ids:
-        for dest in dest_ids:
-            try:
-                distance, path_idx = g.shortest_path(idx_map[src], idx_map[dest])
-            except Exception:
-                continue
-            if path_idx and (best_distance is None or distance < best_distance):
-                best_distance = distance
-                best_path = path_idx
-
-    if not best_path or best_distance is None or best_distance == float('inf'):
-        raise HTTPException(404, "Aucun chemin trouvé entre ces stop_ids")
-
-    # 5) Convertir le chemin d'ids internes en stop_ids physiques (en évitant les doublons consécutifs)
-    path_stop_ids = []
-    last_stop_id = None
-    for idx in best_path:
-        stop_id = id_to_stopid[inv_map[idx]]
-        if stop_id != last_stop_id:
-            path_stop_ids.append(stop_id)
-            last_stop_id = stop_id
-
-    return DijkstraResponse(distance=best_distance, path=path_stop_ids)
+    is_connected = is_graph_connected(adj_matrix)
+    return {"connected": is_connected}
 
