@@ -34,17 +34,21 @@
             type="text"
             class="input"
             v-model="source"
-            placeholder="Enter a starting station point..."
+            placeholder="Enter a starting station name"
             @input="showSourceSuggestions = true"
             @blur="showSourceSuggestions = false"
-            autocomplete = "off"
+            autocomplete="off"
           />
-          <ul v-if="showSourceSuggestions && filteredSourceSuggestions.length > 0">
+          <ul
+            v-if="showSourceSuggestions && filteredSourceSuggestions.length > 0"
+          >
             <li
-            v-for="suggestion in filteredSourceSuggestions"
-            :key="suggestion"
-            @mousedown="source = suggestion"
-            > {{ suggestion }}</li>
+              v-for="suggestion in filteredSourceSuggestions"
+              :key="suggestion"
+              @mousedown="source = suggestion"
+            >
+              {{ suggestion }}
+            </li>
           </ul>
         </div>
       </div>
@@ -93,25 +97,35 @@
             type="text"
             class="input"
             v-model="destination"
-            placeholder="Enter a destination station point..."
+            placeholder="Enter a destination station name"
             @input="showDestinationSuggestions = true"
             @blur="showDestinationSuggestions = false"
             autocomplete="off"
           />
-          <ul v-if="showDestinationSuggestions && filteredDestinationSuggestions.length > 0">
+          <ul
+            v-if="
+              showDestinationSuggestions &&
+              filteredDestinationSuggestions.length > 0
+            "
+          >
             <li
-            v-for="suggestion in filteredDestinationSuggestions"
-            :key="suggestion"
-            @mousedown="destination = suggestion"
+              v-for="suggestion in filteredDestinationSuggestions"
+              :key="suggestion"
+              @mousedown="destination = suggestion"
             >
-            {{ suggestion }}
-        </li>
+              {{ suggestion }}
+            </li>
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <button v-on:click="sendSourceDestination">Send Data</button>
+  <div class="button-center">
+    <button class="send-button" v-on:click="sendSourceDestination">
+    Send Data
+  </button>
+  </div>
+  
 </template>
 
 <script setup>
@@ -130,22 +144,22 @@ const stations = ref([]);
 const filteredSourceSuggestions = computed(() => {
   if (!source.value || source.value.length < 2) return [];
   return stations.value
-    .filter(station =>
+    .filter((station) =>
       station.stop_name.toLowerCase().includes(source.value.toLowerCase())
     )
     .slice(0, 5)
-    .map(station => station.stop_name);
+    .map((station) => station.stop_name);
 });
 
 // Suggestion for "To"
 const filteredDestinationSuggestions = computed(() => {
   if (!destination.value || destination.value.length < 2) return [];
   return stations.value
-    .filter(station =>
+    .filter((station) =>
       station.stop_name.toLowerCase().includes(destination.value.toLowerCase())
     )
     .slice(0, 5)
-    .map(station => station.stop_name);
+    .map((station) => station.stop_name);
 });
 
 const sendSourceDestination = () => {
@@ -159,7 +173,9 @@ const sendSourceDestination = () => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get("https://backend-ot44.onrender.com/stations/");
+    const response = await axios.get(
+      "https://backend-ot44.onrender.com/stations/"
+    );
     stations.value = response.data;
   } catch (error) {
     console.error("Erreur:", error);
@@ -202,7 +218,7 @@ onMounted(async () => {
   outline: none;
   border-color: #bfbfbf;
   padding-bottom: 5px;
-  width: 265px;
+  width: 310px;
   font-size: 20px;
 }
 
@@ -239,7 +255,7 @@ ul {
   padding: 0;
   font-weight: lighter;
   font-size: 18px;
-
+  list-style-type: none;
 }
 
 li {
@@ -249,5 +265,28 @@ li {
 
 li:hover {
   background: #f0f0f0;
+}
+
+input::placeholder {
+  color: rgba(212, 212, 212, 0.927);
+}
+
+.send-button {
+  padding: 10px 20px;
+  background-color: #000000; /* Green background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  border-radius: 8px; /* Rounded corners */
+  font-size: 16px; /* Font size */
+  font-weight: bold;
+  cursor: pointer; /* Cursor on hover */
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.button-center {
+    display: flex;
+    justify-content: flex-end;
+
 }
 </style>
