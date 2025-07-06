@@ -12,7 +12,7 @@
                     </svg>
                 </div>
                 <div class="input-zone"> 
-                    <input type="text" class="input">
+                    <input type="text" class="input" v-model="source" placeholder="Enter a starting station point...">
                 </div>
             </div>
             <div class="bullet-point-container">
@@ -32,14 +32,54 @@
                     </svg>
                 </div>
                 <div class="input-zone"> 
-                    <input type="text" class="input">
+                    <input type="text" class="input" v-model="destination" placeholder="Enter a destination station point...">
                 </div>
             </div>
         </div>
     </div>
+    <button v-on:click="sendSourceDestination">Send Data</button>
 </template>
 
 <script setup>
+import { ref } from "vue";
+import { useNewStore } from '../stores/path.js';
+
+const store = useNewStore()
+
+const source = ref('')
+const destination = ref('')
+
+const sendSourceDestination = () => {
+    store.sourceData = source.value
+    store.destinationData = destination.value
+    console.log(store.sourceData)
+    console.log(store.destinationData)
+    source.value = ''
+    destination.value = ''
+}
+
+
+
+// const source = ref('')
+// const destination = ref('')
+
+// const emit = defineEmits(['source', 'destination'])
+// const sendSource = () => {
+//     emit('source', source.value)
+//     source.value = ''
+// }
+// const sendDestination = () => {
+//     emit('destination', destination.value)
+//     destination.value = ''
+// }
+
+// const sendSourceDestination = () => {
+//     emit('source', source.value)
+//     source.value = ''
+//     emit('destination', destination.value)
+//     destination.value = ''
+// }
+
 
 </script>
 

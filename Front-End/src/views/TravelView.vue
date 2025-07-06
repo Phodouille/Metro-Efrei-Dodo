@@ -2,7 +2,7 @@
     <div class="background">
         <div class="header">
             <h1>Time to ride ! <br> Where to this time ?</h1>
-            <SearchBar />
+            <SearchBar /> <span> <br> This is the source destination : <br> This is the destination : </span>
         </div>
         <div class="map">
             <Map />
