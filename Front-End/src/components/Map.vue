@@ -18,6 +18,12 @@ const path = ref([]);
 const djikstraStations = ref([]);
 const filteredDjikstraStations = ref([]);
 const dijkstraPointsCoordinates = ref([]);
+const customMarkerIcon = L.icon({
+  iconUrl: 'src/assets/MarkerIcon.svg',
+  iconSize: [18, 18],       // size of the icon
+  iconAnchor: [9, 9],     // point of the icon which will correspond to marker's location
+  popupAnchor: [0, -5] 
+})
 let pointLineMarkerGroup = null;
 let map = null;
 
@@ -25,7 +31,7 @@ const placeDijkstraPoint = () => {
   pointLineMarkerGroup.clearLayers();
   for (let i = 0; i < filteredDjikstraStations.value.length; i++) {
     const element = filteredDjikstraStations.value[i];
-    const marker = L.marker([element.lat, element.lon]);
+    const marker = L.marker([element.lat, element.lon], {icon: customMarkerIcon});
     marker
       .bindPopup(`${element.title} ${element.line}`)
       .addTo(pointLineMarkerGroup);
@@ -36,7 +42,7 @@ const placeDijkstraPoint = () => {
     padding: [50, 50],     // Adds margin around the points
     maxZoom: 20,           // Prevents zooming in too much
     animate: true,
-    duration: 1.5          // Duration of animation in seconds
+    duration: 0.5         // Duration of animation in seconds
   });
 }
 };
@@ -44,7 +50,7 @@ const placeDijkstraPoint = () => {
 const drawLinesBetweenDijkstraPoint = () => {
   dijkstraPointsCoordinatesList();
   const lineMarker = L.polyline(dijkstraPointsCoordinates.value, {
-    color: "red",
+    color: "green",
     weight: 5,
     opacity: 0.8,
   });
