@@ -19,6 +19,7 @@ const djikstraStations = ref([]);
 const filteredDjikstraStations = ref([]);
 const dijkstraPointsCoordinates = ref([]);
 let pointLineMarkerGroup = null;
+let map = null;
 
 const placeDijkstraPoint = () => {
   pointLineMarkerGroup.clearLayers();
@@ -30,6 +31,14 @@ const placeDijkstraPoint = () => {
       .addTo(pointLineMarkerGroup);
   }
   drawLinesBetweenDijkstraPoint();
+  if (pointLineMarkerGroup.getLayers().length > 0) {
+  map.flyToBounds(pointLineMarkerGroup.getBounds(), {
+    padding: [50, 50],     // Adds margin around the points
+    maxZoom: 20,           // Prevents zooming in too much
+    animate: true,
+    duration: 1.5          // Duration of animation in seconds
+  });
+}
 };
 
 const drawLinesBetweenDijkstraPoint = () => {
@@ -188,7 +197,7 @@ async function loadDijkstra() {
 }
 
 onMounted(() => {
-  let map = L.map("map").setView([48.86285403569893, 2.3448491571643038], 12.5);
+  map = L.map("map").setView([48.86285403569893, 2.3448491571643038], 12.5);
   L.tileLayer(
     "https://tile.jawg.io/5eafae32-aa5a-47da-a62c-ad2c1ab57fc3/{z}/{x}/{y}{r}.png?access-token=7CazPEKT76Mh5MSYbVWhLsP50NvaNbsBSbtEu3buIa0KijexNhx58EbJzu5dZ8Ox",
     {
@@ -198,7 +207,7 @@ onMounted(() => {
       maxZoom: 22,
     }
   ).addTo(map);
-  pointLineMarkerGroup = L.layerGroup().addTo(map);
+  pointLineMarkerGroup = L.featureGroup().addTo(map);
   loadStations();
 });
 </script>
