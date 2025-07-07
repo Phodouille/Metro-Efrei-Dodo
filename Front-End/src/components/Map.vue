@@ -35,6 +35,11 @@ const placeDijkstraPoint = () => {
     marker
       .bindPopup(`${element.title} ${element.line}`)
       .addTo(pointLineMarkerGroup);
+    // if (i === 0) {
+    //   const element = filterDjikstraStations.value[i]
+    //   const marker = L.marker([element.lat, element.lon], {icon: customMarkerIcon})
+
+    // }
   }
   drawLinesBetweenDijkstraPoint();
   if (pointLineMarkerGroup.getLayers().length > 0) {
@@ -67,7 +72,7 @@ const dijkstraPointsCoordinatesList = () => {
 async function fetchStations() {
   try {
     const response = await axios.get(
-      "https://backend-ot44.onrender.com/stations"
+      "http://127.0.0.1:8000/stations/"
     );
     const data = response.data;
     for (let index = 0; index < data.length; index++) {
@@ -97,7 +102,7 @@ async function loadStations() {
       destinationDataMap.value = newDstData;
       searchId();
       listIdSrcDst.value = [...setIdSrcDst.value];
-      console.log(stations.value);
+      console.log('stations list ', stations.value);
       console.log(listIdSrcDst.value);
       loadDijkstra();
     }
@@ -108,7 +113,7 @@ async function fetchDijkstraPath() {
   path.value = [];
   try {
     const response = await axios.get(
-      `https://backend-ot44.onrender.com/dijkstra/${listIdSrcDst.value[0]}/${listIdSrcDst.value[1]}`
+      `http://127.0.0.1:8000/dijkstra/${listIdSrcDst.value[0]}/${listIdSrcDst.value[1]}`
     );
     const data = response.data.path;
 
@@ -136,11 +141,13 @@ const searchId = () => {
 
 const extractDijkstraStations = () => {
   djikstraStations.value = [];
-  for (let index = 0; index < path.value.length; index++) {
-    const element1 = path.value[index];
-    for (let index = 0; index < stations.value.length; index++) {
-      const element2 = stations.value[index];
-      if (element1 === element2.id) {
+  console.log('check here bro path', path.value)
+  console.log('check here bro stations', stations.value)
+  for (let index1 = 0; index1 < path.value.length; index1++) {
+    const element1 = path.value[index1];
+    for (let index2 = 0; index2 < stations.value.length; index2++) {
+      const element2 = stations.value[index2];
+      if (element1 == element2.id) {
         const obj = {
           id: element2.id,
           lat: element2.lat,
@@ -156,6 +163,7 @@ const extractDijkstraStations = () => {
       }
     }
   }
+
 };
 
 const filterDjikstraStations = () => {
@@ -169,14 +177,14 @@ const filterDjikstraStations = () => {
     ) {
       const element2 = djikstraStations.value[dataIndex];
       if (
-        (element2.id === element1 &&
-          element2.next_stop_id === path.value[pathIndex + 1]) ||
-        (element2.id === element1 &&
-          element2.previous_stop_id === path.value[pathIndex - 1]) ||
-        (element2.id === element1 &&
-          element2.previous_stop_id === path.value[pathIndex + 1]) ||
-        (element2.id === element1 &&
-          element2.next_stop_id === path.value[pathIndex - 1])
+        (element2.id == element1 &&
+          element2.next_stop_id == path.value[pathIndex + 1]) ||
+        (element2.id == element1 &&
+          element2.previous_stop_id == path.value[pathIndex - 1]) ||
+        (element2.id == element1 &&
+          element2.previous_stop_id == path.value[pathIndex + 1]) ||
+        (element2.id == element1 &&
+          element2.next_stop_id == path.value[pathIndex - 1])
       ) {
         const obj = {
           id: element2.id,
@@ -194,7 +202,7 @@ const filterDjikstraStations = () => {
 
 async function loadDijkstra() {
   await fetchDijkstraPath();
-  console.log(path.value);
+  console.log('this is fetch dji path', path.value);
   extractDijkstraStations();
   console.log("Check here : ", djikstraStations.value);
   filterDjikstraStations();

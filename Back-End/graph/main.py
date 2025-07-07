@@ -1,22 +1,37 @@
-# Pour faire fonctionner ce serveur FastAPI, tu dois installer :
-#pip install fastapi uvicorn pydantic networkx
-
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import sys
+from typing import List
+import sqlite3
+from starlette.middleware.cors import CORSMiddleware
 import os
-import json
-import networkx as nx
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from graph_parser import load_graph_from_pickle
-from dijkstra_path import compute_dijkstra_path
-from kruskal import kruskal_mst
+from connexity import is_graph_connected
 
 app = FastAPI()
 
-# Autorise toutes les origines (pour développement)
+class Stop(BaseModel):
+    stop_id: str
+    stop_sequence: int
+    lon: float
+    lat: float
+    stop_name: str
+
+class DijkstraResponse(BaseModel):
+    distance: float
+    path: List[str]
+
+
+def get_db_connection():
+    db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "mon_database.db"))
+    if not os.path.exists(db_path):
+        raise RuntimeError(f"Database not found at {db_path}")
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        # Ne vérifie plus la présence de la table 'stations' ici, laisse chaque endpoint gérer les erreurs SQL
+        return conn
+    except sqlite3.DatabaseError as e:
+        raise RuntimeError(f"Votre base SQLite est corrompue : {e}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,96 +40,200 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Chargement des fichiers
-graph_dir = os.path.dirname(os.path.abspath(__file__))
-pickle_path = os.path.join(graph_dir, "..", "data", "metro_graph.pkl")
-coord_path = os.path.join(graph_dir, "..", "data", "stations_coords.json")
+@app.get("/stops/{line_name}", response_model=List[Stop])
+def read_stops(line_name: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM {line_name} ORDER BY stop_sequence")
+    stops = cursor.fetchall()
+    return [Stop(**dict(stop)) for stop in stops]
 
-graph, station_names, station_lines = load_graph_from_pickle(pickle_path)
-with open(coord_path, 'r', encoding='utf-8') as f:
-    station_coords = json.load(f)
+@app.get("/stop/{line_name}/{stop_id}", response_model=Stop)
+def read_stop(line_name: str, stop_id: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM {line_name} WHERE stop_id = ?", (stop_id,))
+    stop = cursor.fetchone()
+    if stop is None:
+        raise HTTPException(status_code=404, detail="Stop not found")
+    return Stop(**dict(stop))
 
-name_to_id = {name.lower(): sid for sid, name in station_names.items()}
+@app.get("/stations/")
+def read_stations():
+    lines = ["ligne1","ligne2","ligne3","ligne3b", "ligne4", "ligne5", "ligne6", "ligne7", "ligne7b", "ligne8", "ligne9", "ligne10", "ligne11", "ligne12", "ligne13", "ligne14"]
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    stations = []
+    for line in lines:
+        cursor.execute(f"""
+            SELECT nt.*, l.lon, l.lat, l.stop_sequence, l.stop_id as line_stop_id
+            FROM stations nt
+            JOIN {line} l ON nt.stop_ids LIKE '%' || l.stop_id || '%'
+            ORDER BY l.stop_sequence
+        """)
+        line_stations = cursor.fetchall()
+        for i, station in enumerate(line_stations):
+            station_dict = dict(station)
+            station_dict["line"] = line
+            # Add the stop_id of the next station
+            if i < len(line_stations) - 1:
+                next_station_id = line_stations[i + 1]["line_stop_id"]
+                cursor.execute(
+                    "SELECT id FROM stations WHERE stop_ids LIKE '%' || ? || '%'",
+                    (next_station_id,))
+                next_station_new_table_id = cursor.fetchone()
+                station_dict["next_stop_id"] = next_station_new_table_id["id"] if next_station_new_table_id else ""
+            else:
+                station_dict["next_stop_id"] = ""
+            # Add the stop_id of the previous station
+            if i > 0:
+                prev_station_id = line_stations[i - 1]["line_stop_id"]
+                cursor.execute(
+                    "SELECT id FROM stations WHERE stop_ids LIKE '%' || ? || '%'",
+                    (prev_station_id,))
+                prev_station_new_table_id = cursor.fetchone()
+                station_dict["prev_stop_id"] = prev_station_new_table_id["id"] if prev_station_new_table_id else ""
+            else:
+                station_dict["prev_stop_id"] = ""
+            stations.append(station_dict)
+    return stations
 
-def build_nx_graph(graph_dict):
-    G = nx.Graph()
-    for station, neighbors in graph_dict.items():
-        for neighbor, line, weight in neighbors:
-            G.add_edge(station, neighbor, weight=weight)
-    return G
+@app.get("/listestations/")
+def get_listestations():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM listestations")
+    return [dict(row) for row in cursor.fetchall()]
 
-G = build_nx_graph(graph)
+@app.get("/poids/")
+def get_poids():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM poids")
+    return [dict(row) for row in cursor.fetchall()]
 
-class PathRequest(BaseModel):
-    from_: str
-    to: str
+@app.get("/poidsligne/")
+def get_poidsligne():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM poidsligne")
+    return [dict(row) for row in cursor.fetchall()]
 
-@app.get("/api/stations")
-async def get_station_names():
-    return sorted(list(station_names.values()))
+@app.get("/station/{stop_id}")
+def get_station(stop_id: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM stations WHERE stop_ids LIKE '%' || ? || '%'", (stop_id,))
+    station = cursor.fetchone()
+    if station is None:
+        raise HTTPException(status_code=404, detail="Station not found")
+    return dict(station)
+    #    raise HTTPException(status_code=400, detail="Invalid source or destination vertex")
 
-def convert_path_to_output(path):
-    lines = []
-    duration = 0
-    for i in range(len(path) - 1):
-        neighbors = graph[path[i]]
-        for neighbor, line, weight in neighbors:
-            if neighbor == path[i + 1]:
-                if line not in lines:
-                    lines.append(line)
-                duration += weight
-                break
+    distance, path = g.shortest_path(src, dest)
 
-    path_names = [station_names.get(str(st), st) for st in path]
-    coordinates = [station_coords[name] for name in path_names if name in station_coords]
+    return DijkstraResponse(distance=distance, path=path)
 
-    return {
-        "path": path_names,
-        "lines": lines,
-        "duration": round(duration / 60, 1),
-        "coordinates": coordinates
-    }
 
-@app.post('/api/shortest_path')
-async def shortest_path(data: PathRequest):
-    from_station = data.from_
-    to_station = data.to
+@app.get("/stations/")
+def read_stations():
+    lines = ["ligne1","ligne2","ligne3","ligne3b", "ligne4", "ligne5", "ligne6", "ligne7", "ligne7b", "ligne8", "ligne9", "ligne10", "ligne11", "ligne12", "ligne13", "ligne14"]
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    stations = []
+    for line in lines:
+        cursor.execute(f"""
+            SELECT nt.*, l.lon, l.lat, l.stop_sequence, l.stop_id as line_stop_id
+            FROM stations nt
+            JOIN {line} l ON nt.stop_ids LIKE '%' || l.stop_id || '%'
+            ORDER BY l.stop_sequence
+        """)
+        line_stations = cursor.fetchall()
+        for i, station in enumerate(line_stations):
+            station_dict = dict(station)
+            station_dict["line"] = line
+            # Add the stop_id of the next station
+            if i < len(line_stations) - 1:
+                next_station_id = line_stations[i + 1]["line_stop_id"]
+                cursor.execute(
+                    "SELECT id FROM stations WHERE stop_ids LIKE '%' || ? || '%'",
+                    (next_station_id,))
+                next_station_new_table_id = cursor.fetchone()
+                station_dict["next_stop_id"] = next_station_new_table_id["id"] if next_station_new_table_id else ""
+            else:
+                station_dict["next_stop_id"] = ""
+            # Add the stop_id of the previous station
+            if i > 0:
+                prev_station_id = line_stations[i - 1]["line_stop_id"]
+                cursor.execute(
+                    "SELECT id FROM stations WHERE stop_ids LIKE '%' || ? || '%'",
+                    (prev_station_id,))
+                prev_station_new_table_id = cursor.fetchone()
+                station_dict["prev_stop_id"] = prev_station_new_table_id["id"] if prev_station_new_table_id else ""
+            else:
+                station_dict["prev_stop_id"] = ""
+            stations.append(station_dict)
+    return stations
 
-    if not from_station or not to_station:
-        raise HTTPException(status_code=400, detail="Champs manquants")
+@app.get("/dijkstra/{src}/{dest}", response_model=DijkstraResponse)
+def get_dijkstra(src: int, dest: int):
+    try:
+        from dijkstra import GraphDijkstra
+    except ImportError:
+        raise HTTPException(500, "Le module dijkstra.py est introuvable ou invalide.")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     try:
-        from_id = name_to_id.get(from_station.lower(), from_station)
-        to_id = name_to_id.get(to_station.lower(), to_station)
+        cursor.execute("SELECT COUNT(*) FROM stations")
+        nb_vertices = cursor.fetchone()[0]
 
-        results = []
+        g = GraphDijkstra(nb_vertices)
 
-        # Dijkstra
-        path_dijkstra, _ = compute_dijkstra_path(graph, from_id, to_id)
-        if path_dijkstra:
-            results.append(convert_path_to_output(path_dijkstra))
+        cursor.execute("SELECT * FROM concatligne")
+        liaisons = [list(row) for row in cursor.fetchall()]
 
-        # Kruskal (via MST et BFS pour extraire un chemin)
-        mst = kruskal_mst(graph)
-        mst_graph = build_nx_graph(mst)
-        try:
-            path_kruskal = nx.shortest_path(mst_graph, source=from_id, target=to_id)
-            results.append(convert_path_to_output(path_kruskal))
-        except:
-            pass
+        for u, v, w in liaisons:
+            g.graph[int(u)][int(v)] = int(w)
+            g.graph[int(v)][int(u)] = int(w)  
 
-        # Supprimer les doublons (même chemin)
-        unique_results = []
-        seen_paths = set()
-        for r in results:
-            path_str = '->'.join(r['path'])
-            if path_str not in seen_paths:
-                seen_paths.add(path_str)
-                unique_results.append(r)
+        if src >= nb_vertices or src < 0 or dest >= nb_vertices or dest < 0:
+            raise HTTPException(status_code=400, detail="Invalid source or destination vertex")
 
-        return unique_results
+        distance, path = g.shortest_path(src, dest)
 
+        if not path or distance == float('inf'):
+            raise HTTPException(404, "Aucun chemin trouvé entre ces sommets")
+
+       
+
+        return DijkstraResponse(
+            distance = distance,
+            path=[str(p) for p in path],
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(500, f"Erreur interne lors de l'exécution de Dijkstra : {e}")
 
-# Pour lancer : py -m uvicorn main:app --reload
+@app.get("/connexity/")
+def check_connexity():
+    """
+    Vérifie si le graphe global (concatligne) est connexe.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM stations")
+    nb_vertices = cursor.fetchone()[0]
+
+    # Création de la matrice d'adjacence
+    adj_matrix = [[0] * nb_vertices for _ in range(nb_vertices)]
+    cursor.execute("SELECT * FROM concatligne")
+    for row in cursor.fetchall():
+        u, v, w = int(row[0]), int(row[1]), int(row[2])
+        adj_matrix[u][v] = w
+        adj_matrix[v][u] = w  # Graphe non orienté
+
+    is_connected = is_graph_connected(adj_matrix)
+    return {"connected": is_connected}
+

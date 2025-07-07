@@ -174,7 +174,7 @@ const sendSourceDestination = () => {
 onMounted(async () => {
   try {
     const response = await axios.get(
-      "https://backend-ot44.onrender.com/stations/"
+      "http://127.0.0.1:8000/stations/"
     );
     stations.value = response.data;
   } catch (error) {
