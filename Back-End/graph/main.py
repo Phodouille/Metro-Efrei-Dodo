@@ -206,13 +206,9 @@ def get_dijkstra(src: int, dest: int):
         if not path or distance == float('inf'):
             raise HTTPException(404, "Aucun chemin trouvé entre ces sommets")
 
-        # Ajoute 30 secondes par arrêt intermédiaire (nombre d'arrêts - 2)
-        nb_arrets = len(path)
-        if nb_arrets > 2:
-            distance += 0.5 * (nb_arrets - 2)
 
         return DijkstraResponse(
-            distance=round(distance),
+            distance=distance,
             path=[str(p) for p in path],
         )
     except Exception as e:
@@ -239,4 +235,31 @@ def check_connexity():
 
     is_connected = is_graph_connected(adj_matrix)
     return {"connected": is_connected}
+
+# To launch your FastAPI backend, use this command from the Back-End/graph directory:
+# uvicorn main:app --reload
+
+# Do NOT use: uvicorn app:app --reload
+# The filename is main.py, so the correct module is "main".
+
+# If you get "Could not import module 'app'", it means you ran:
+# uvicorn app:app --reload
+# instead of:
+# uvicorn main:app --reload
+
+# Make sure you are in the directory containing main.py and use the correct command.
+
+# L’erreur "'uvicorn' n’est pas reconnu..." signifie que Uvicorn n’est pas installé ou pas dans le PATH.
+# Pour corriger :
+# 1. Installe Uvicorn avec pip :
+#    pip install uvicorn
+# 2. Si tu utilises un environnement virtuel (venv), active-le avant de lancer la commande :
+#    Sous Windows :
+#      .\venv\Scripts\activate
+#    Puis :
+#      uvicorn main:app --reload
+# 3. Si tu utilises Python sans venv, assure-toi que le dossier Scripts de Python est dans le PATH système.
+
+# Si tu veux lancer Uvicorn sans l’ajouter au PATH, tu peux aussi utiliser :
+#    python -m uvicorn main:app --reload
 
