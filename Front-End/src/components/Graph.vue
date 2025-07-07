@@ -8,6 +8,7 @@ import axios from "axios";
 let map = null;
 let stationsMarkerGroup = null;
 let stationsPolylineGroup = null;
+let mstMarkerGroup = null;
 let mstPolylineGroup = null;
 const stations = ref([]);
 const acpmLinks = ref([]);
@@ -69,33 +70,81 @@ function showAllstations() {
   }
 }
 
-// Fonction pour afficher les liaisons ACPM/MST (API /acpm)
-function showMstLinks() {
+// Fonction pour afficher uniquement les stations et liaisons selon l'API /acpm
+function showAcpm() {
   if (!map) return;
-  // Nettoyage des anciens polylines MST
+  // Nettoyage des anciens marqueurs et polylines ACPM
+  if (mstMarkerGroup) {
+    mstMarkerGroup.clearLayers();
+  } else {
+    mstMarkerGroup = L.featureGroup().addTo(map);
+  }
   if (mstPolylineGroup) {
     mstPolylineGroup.clearLayers();
   } else {
     mstPolylineGroup = L.featureGroup().addTo(map);
   }
+
+  // DEBUG : Affiche les liens et les stations utilisés
+  console.log("acpmLinks.value =", acpmLinks.value);
+  console.log("stations.value =", stations.value);
+
+  // On récupère tous les stop_ids utilisés dans les liens ACPM
+  const usedIds = new Set();
+  for (const link of acpmLinks.value) {
+    if (Array.isArray(link) && link.length === 2) {
+      usedIds.add(String(link[0]));
+      usedIds.add(String(link[1]));
+    }
+  }
+  console.log("usedIds =", Array.from(usedIds));
+
+  // Ajout des marqueurs pour chaque station utilisée dans ACPM
+  for (const station of stations.value) {
+    // station.stop_ids peut contenir plusieurs ids séparés par des virgules
+    const stopIds = String(station.stop_ids || station.id).split(",");
+    if (
+      stopIds.some(id => usedIds.has(id.trim())) &&
+      station.lat !== undefined &&
+      station.lon !== undefined
+    ) {
+      console.log("Ajout marker ACPM:", station.stop_ids, station.stop_name, station.lat, station.lon);
+      const marker = L.marker([station.lat, station.lon], { icon: customMarkerIcon });
+      marker.bindPopup(`${station.stop_name} (${station.line})`);
+      mstMarkerGroup.addLayer(marker);
+    }
+  }
+
   // Ajout des liaisons selon l'API /acpm
   for (const link of acpmLinks.value) {
-    // On suppose que l'API /acpm retourne des objets {from_id, to_id}
-    const fromStation = stations.value.find(s => String(s.id) === String(link.from_id));
-    const toStation = stations.value.find(s => String(s.id) === String(link.to_id));
-    if (fromStation && toStation) {
+    if (!Array.isArray(link) || link.length !== 2) continue;
+    // Trouve la station dont stop_ids contient link[0]
+    const fromStation = stations.value.find(s =>
+      String(s.stop_ids || s.id).split(",").map(id => id.trim()).includes(String(link[0]))
+    );
+    const toStation = stations.value.find(s =>
+      String(s.stop_ids || s.id).split(",").map(id => id.trim()).includes(String(link[1]))
+    );
+    if (
+      fromStation && toStation &&
+      fromStation.lat !== undefined && fromStation.lon !== undefined &&
+      toStation.lat !== undefined && toStation.lon !== undefined
+    ) {
+      console.log("Ajout liaison ACPM:", link[0], "->", link[1]);
       const polyline = L.polyline(
         [
           [fromStation.lat, fromStation.lon],
           [toStation.lat, toStation.lon]
         ],
         {
-          color: "#FF4136", 
+          color: "#FF4136",
           weight: 4,
           opacity: 0.85,
         }
       );
       mstPolylineGroup.addLayer(polyline);
+    } else {
+      console.warn("Liaison ignorée (station manquante):", link, fromStation, toStation);
     }
   }
 }
@@ -113,7 +162,7 @@ async function fetchStations() {
 // Charge les liaisons ACPM depuis l'API backend
 async function fetchAcpmLinks() {
   try {
-    const response = await axios.get("http://127.0.0.1:8000/acpm");
+    const response = await axios.get("http://127.0.0.1:8000/acpm/");
     acpmLinks.value = response.data;
   } catch (error) {
     console.error("Erreur lors du chargement des liaisons ACPM :", error);
@@ -125,8 +174,7 @@ onMounted(async () => {
   L.tileLayer(
     "https://tile.jawg.io/5eafae32-aa5a-47da-a62c-ad2c1ab57fc3/{z}/{x}/{y}{r}.png?access-token=7CazPEKT76Mh5MSYbVWhLsP50NvaNbsBSbtEu3buIa0KijexNhx58EbJzu5dZ8Ox",
     {
-      attribution:
-        '<a href="https://jawg.io" title="Tiles Courtesy of Jawg Maps" target="_blank">&copy; <b>Jawg</b>Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      attribution:'<a href="https://jawg.io" title="Tiles Courtesy of Jawg Maps" target="_blank">&copy; <b>Jawg</b>Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       minZoom: 0,
       maxZoom: 22,
     }
@@ -139,17 +187,17 @@ onMounted(async () => {
     } else {
       if (stationsMarkerGroup) stationsMarkerGroup.clearLayers();
       if (stationsPolylineGroup) stationsPolylineGroup.clearLayers();
-      if (mstPolylineGroup) mstPolylineGroup.clearLayers();
+      // On ne touche pas à mstPolylineGroup ici
     }
   });
 
-  // Affichage/masquage du MST (ACPM)
+  // Affichage exclusif de l'APCM/MST (bouton, pas toggle)
   window.addEventListener("show-mst", (e) => {
-    if (e.detail) {
-      Promise.all([fetchStations(), fetchAcpmLinks()]).then(showMstLinks);
-    } else {
-      if (mstPolylineGroup) mstPolylineGroup.clearLayers();
-    }
+    // On efface tout le réseau classique
+    if (stationsMarkerGroup) stationsMarkerGroup.clearLayers();
+    if (stationsPolylineGroup) stationsPolylineGroup.clearLayers();
+    // On affiche l'APCM/MST
+    Promise.all([fetchStations(), fetchAcpmLinks()]).then(showAcpm);
   });
 });
 </script>
