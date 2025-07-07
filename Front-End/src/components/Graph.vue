@@ -21,7 +21,7 @@ const customMarkerIcon = L.icon({
   popupAnchor: [0, -5],
 });
 
-// Fonction pour afficher toutes les stations sur la carte et relier les points selon les vraies liaisons (next_stop_id)
+// Fonction pour afficher toutes les stations sur la carte et relier les points selon les vraies liaisons de l'ACPM en ajoutant les stations des différentes lignes
 function showAllstations() {
   if (!map) return;
   // Nettoyage des anciens marqueurs et polylines
@@ -73,7 +73,8 @@ function showAllstations() {
 // Fonction pour afficher uniquement les stations et liaisons selon l'API /acpm
 function showAcpm() {
   if (!map) return;
-  // Nettoyage des anciens marqueurs et polylines ACPM
+
+  // 1. (Re)création / nettoyage des groupes
   if (mstMarkerGroup) {
     mstMarkerGroup.clearLayers();
   } else {
@@ -85,69 +86,84 @@ function showAcpm() {
     mstPolylineGroup = L.featureGroup().addTo(map);
   }
 
-  // DEBUG : Affiche les liens et les stations utilisés
-  console.log("acpmLinks.value =", acpmLinks.value);
-  console.log("stations.value =", stations.value);
+  // 2. Map stop_id → station (pour lookup rapide)
+  const idToStation = {};
+  stations.value.forEach(station => {
+    const raw = station.stop_ids ?? station.id;
+    const ids = String(raw).split(",").map(s => s.trim());
+    ids.forEach(id => { idToStation[id] = station; });
+  });
 
-  // On récupère tous les stop_ids utilisés dans les liens ACPM
+  // 3. Collecter tous les stop_ids et stop_names “utilisés” par /acpm
   const usedIds = new Set();
-  for (const link of acpmLinks.value) {
+  acpmLinks.value.forEach(link => {
     if (Array.isArray(link) && link.length === 2) {
       usedIds.add(String(link[0]));
       usedIds.add(String(link[1]));
     }
-  }
-  console.log("usedIds =", Array.from(usedIds));
+  });
+  const usedNames = new Set();
+  usedIds.forEach(id => {
+    const st = idToStation[id];
+    if (st) usedNames.add(st.stop_name);
+  });
 
-  // Ajout des marqueurs pour chaque station utilisée dans ACPM
-  for (const station of stations.value) {
-    // station.stop_ids peut contenir plusieurs ids séparés par des virgules
-    const stopIds = String(station.stop_ids || station.id).split(",");
+  // 4. Afficher **tous** les markers dont le stop_name est utilisé
+  stations.value.forEach(station => {
     if (
-      stopIds.some(id => usedIds.has(id.trim())) &&
-      station.lat !== undefined &&
-      station.lon !== undefined
+      usedNames.has(station.stop_name) &&
+      station.lat != null && station.lon != null
     ) {
-      console.log("Ajout marker ACPM:", station.stop_ids, station.stop_name, station.lat, station.lon);
-      const marker = L.marker([station.lat, station.lon], { icon: customMarkerIcon });
-      marker.bindPopup(`${station.stop_name} (${station.line})`);
-      mstMarkerGroup.addLayer(marker);
+      L.marker([station.lat, station.lon], { icon: customMarkerIcon })
+       .bindPopup(`${station.stop_name} (${station.line})`)
+       .addTo(mstMarkerGroup);
     }
-  }
+  });
 
-  // Ajout des liaisons selon l'API /acpm
-  for (const link of acpmLinks.value) {
-    if (!Array.isArray(link) || link.length !== 2) continue;
-    // Trouve la station dont stop_ids contient link[0]
-    const fromStation = stations.value.find(s =>
-      String(s.stop_ids || s.id).split(",").map(id => id.trim()).includes(String(link[0]))
-    );
-    const toStation = stations.value.find(s =>
-      String(s.stop_ids || s.id).split(",").map(id => id.trim()).includes(String(link[1]))
-    );
-    if (
-      fromStation && toStation &&
-      fromStation.lat !== undefined && fromStation.lon !== undefined &&
-      toStation.lat !== undefined && toStation.lon !== undefined
-    ) {
-      console.log("Ajout liaison ACPM:", link[0], "->", link[1]);
-      const polyline = L.polyline(
-        [
-          [fromStation.lat, fromStation.lon],
-          [toStation.lat, toStation.lon]
-        ],
-        {
-          color: "#FF4136",
-          weight: 4,
-          opacity: 0.85,
-        }
-      );
-      mstPolylineGroup.addLayer(polyline);
-    } else {
-      console.warn("Liaison ignorée (station manquante):", link, fromStation, toStation);
+  // 5. Tracer les liaisons “officielles” ACPM (rouge)
+  acpmLinks.value.forEach(link => {
+    if (!Array.isArray(link) || link.length !== 2) return;
+    const from = idToStation[String(link[0])];
+    const to   = idToStation[String(link[1])];
+    if (from && to) {
+      L.polyline(
+        [[from.lat, from.lon], [to.lat,   to.lon]],
+        { color: "#FF4136", weight: 4, opacity: 0.85 }
+      ).addTo(mstPolylineGroup);
     }
-  }
+  });
+
+
+  // 6. Connexions **inter-enregistrements** même stop_name — vert pointillé
+  const nameToStations = {};
+  stations.value.forEach(station => {
+    if (usedNames.has(station.stop_name)) {
+      (nameToStations[station.stop_name] ??= []).push(station);
+    }
+  });
+
+  Object.values(nameToStations).forEach(group => {
+    if (group.length > 1) {
+      const [ref, ...others] = group;
+      others.forEach(st => {
+        L.polyline(
+          [[ref.lat,  ref.lon], [st.lat, st.lon]],
+          {
+            color:    "#2ECC40",
+            weight:   2,
+            opacity:  0.6,
+            dashArray:"2,4"
+          }
+        ).addTo(mstPolylineGroup);
+      });
+    }
+  });
 }
+
+
+
+
+
 
 // Charge les stations depuis l'API backend
 async function fetchStations() {
@@ -198,6 +214,7 @@ onMounted(async () => {
     if (stationsPolylineGroup) stationsPolylineGroup.clearLayers();
     // On affiche l'APCM/MST
     Promise.all([fetchStations(), fetchAcpmLinks()]).then(showAcpm);
+    showAcpm();
   });
 });
 </script>

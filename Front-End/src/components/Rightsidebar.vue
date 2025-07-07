@@ -20,9 +20,9 @@
 import { reactive } from "vue";
 
 const toggles = reactive([
+    { label: "Network", active: false },
   { label: "MST", active: false },
   { label: "Connexity", active: false },
-  { label: "Network", active: false },
   { label: "Traffic", active: false },
 ]);
 
