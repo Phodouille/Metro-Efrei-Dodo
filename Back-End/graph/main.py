@@ -5,6 +5,8 @@ import sqlite3
 from starlette.middleware.cors import CORSMiddleware
 import os
 from connexity import is_graph_connected
+from kruskal import Graph
+from dijkstra import GraphDijkstra
 
 app = FastAPI()
 
@@ -206,10 +208,9 @@ def get_dijkstra(src: int, dest: int):
         if not path or distance == float('inf'):
             raise HTTPException(404, "Aucun chemin trouvé entre ces sommets")
 
-       
 
         return DijkstraResponse(
-            distance = distance,
+            distance=distance,
             path=[str(p) for p in path],
         )
     except Exception as e:
@@ -237,3 +238,85 @@ def check_connexity():
     is_connected = is_graph_connected(adj_matrix)
     return {"connected": is_connected}
 
+# To launch your FastAPI backend, use this command from the Back-End/graph directory:
+# uvicorn main:app --reload
+
+# Do NOT use: uvicorn app:app --reload
+# The filename is main.py, so the correct module is "main".
+
+# If you get "Could not import module 'app'", it means you ran:
+# uvicorn app:app --reload
+# instead of:
+# uvicorn main:app --reload
+
+# Make sure you are in the directory containing main.py and use the correct command.
+
+# L’erreur "'uvicorn' n’est pas reconnu..." signifie que Uvicorn n’est pas installé ou pas dans le PATH.
+# Pour corriger :
+# 1. Installe Uvicorn avec pip :
+#    pip install uvicorn
+# 2. Si tu utilises un environnement virtuel (venv), active-le avant de lancer la commande :
+#    Sous Windows :
+#      .\venv\Scripts\activate
+#    Puis :
+#      uvicorn main:app --reload
+# 3. Si tu utilises Python sans venv, assure-toi que le dossier Scripts de Python est dans le PATH système.
+
+# Si tu veux lancer Uvicorn sans l’ajouter au PATH, tu peux aussi utiliser :
+#    python -m uvicorn main:app --reload
+
+@app.get("/acpm")
+def get_kruskal():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM stations")
+    nb_vertices = cursor.fetchall()
+    nb_vertices = len(nb_vertices)
+    g = Graph(nb_vertices)
+
+    cursor.execute("SELECT * FROM concatligne")
+    liaisons = [list(row) for row in cursor.fetchall()]
+
+    for u, v, w in liaisons:
+        g.add_edge(int(u), int(v), int(w))
+
+    acpm = g.kruskal()
+
+    cursor.execute("SELECT stop_ids,id FROM stations")
+    stop_ids = cursor.fetchall()
+    stop_ids = {id: stop_id.split(',')[0] for stop_id, id in stop_ids}
+
+    acpm_id = [(stop_ids[u], stop_ids[v]) for u, v in acpm]
+
+    return acpm_id
+
+
+@app.get("/acpm/points")
+def get_kruskal_points():
+    kruskal = get_kruskal()
+
+    points = []
+
+    for u, v in kruskal:
+        if u not in points:
+            points.append(u)
+        if v not in points:
+            points.append(v)
+
+
+    lines = ["ligne1","ligne2","ligne3","ligne3b", "ligne4", "ligne5", "ligne6", "ligne7", "ligne7b", "ligne8", "ligne9", "ligne10", "ligne11", "ligne12", "ligne13", "ligne14"]
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    stops = []
+
+    for line in lines:
+        cursor.execute(f"SELECT * FROM {line}")
+        stops += cursor.fetchall()
+
+    stops = [Stop(**dict(stop)) for stop in stops]
+
+    points = [stop for stop in stops if stop.stop_id in points]
+
+    return points
