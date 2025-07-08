@@ -8,7 +8,7 @@
     <div v-if="isConnexityView">
       <p v-if="loadingConnexity">Chargement de la connexité…</p>
       <p v-else-if="connexe">✅ Le réseau est <strong>connexe</strong>.</p>
-      <p v-else>❌ Le graphe <strong>n'est pas</strong> connexe.</p>
+      <p v-else>❌ Le réseau <strong>n'est pas</strong> connexe.</p>
     </div>
 
 <!-- News -->

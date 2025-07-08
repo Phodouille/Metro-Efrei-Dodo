@@ -19,7 +19,6 @@
 <script setup>
 import { reactive } from "vue";
 
-// on garde la séparation en groupes map vs panel
 const toggles = reactive([
   { label: "Network",   group: "map",   active: false },
   { label: "MST",       group: "map",   active: false },
@@ -27,28 +26,31 @@ const toggles = reactive([
   { label: "News",      group: "panel", active: false },
 ]);
 
-function onSelect(selectedItem) {
-  if (selectedItem.group === "map") {
-    // un seul actif dans le groupe map (Network / MST)
+function onSelect(selected) {
+  // si on reclique sur le même bouton actif, on le désactive
+  const willActivate = !selected.active;
+
+  if (selected.group === "map") {
+    // désactive tout le groupe map, puis active si besoin
     toggles
       .filter(t => t.group === "map")
-      .forEach(t => t.active = (t === selectedItem));
+      .forEach(t => t.active = false);
+    if (willActivate) selected.active = true;
 
-    // dispatch uniquement pour Network et MST
     window.dispatchEvent(new CustomEvent("show-network", {
       detail: toggles.find(t => t.label === "Network").active
     }));
     window.dispatchEvent(new CustomEvent("show-mst", {
-      detail: toggles.find(t => t.label === "MST").active
+      detail:       toggles.find(t => t.label === "MST").active
     }));
 
   } else {
-    // groupe panel (Connexity / News)
+    // désactive tout le groupe panel, puis active si besoin
     toggles
       .filter(t => t.group === "panel")
-      .forEach(t => t.active = (t === selectedItem));
+      .forEach(t => t.active = false);
+    if (willActivate) selected.active = true;
 
-    // dispatch uniquement pour Connexity et News
     window.dispatchEvent(new CustomEvent("show-connexity", {
       detail: toggles.find(t => t.label === "Connexity").active
     }));
@@ -58,6 +60,7 @@ function onSelect(selectedItem) {
   }
 }
 </script>
+
 
 <style scoped>
 .sidebar {
