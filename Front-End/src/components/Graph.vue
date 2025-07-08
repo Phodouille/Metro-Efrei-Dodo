@@ -208,14 +208,23 @@ onMounted(async () => {
   });
 
   // Affichage exclusif de l'APCM/MST (bouton, pas toggle)
-  window.addEventListener("show-mst", (e) => {
-    // On efface tout le réseau classique
-    if (stationsMarkerGroup) stationsMarkerGroup.clearLayers();
-    if (stationsPolylineGroup) stationsPolylineGroup.clearLayers();
-    // On affiche l'APCM/MST
-    Promise.all([fetchStations(), fetchAcpmLinks()]).then(showAcpm);
-    showAcpm();
-  });
+  window.addEventListener("show-mst", async (e) => {
+  // Si detail=false, on vide juste les couches MST
+  if (!e.detail) {
+    if (mstMarkerGroup)   mstMarkerGroup.clearLayers();
+    if (mstPolylineGroup) mstPolylineGroup.clearLayers();
+    return;
+  }
+
+  // Si detail=true, on veut afficher MST
+  // On efface d'abord le réseau classique
+  if (stationsMarkerGroup)   stationsMarkerGroup.clearLayers();
+  if (stationsPolylineGroup) stationsPolylineGroup.clearLayers();
+
+  // On charge les données puis on trace
+  await Promise.all([fetchStations(), fetchAcpmLinks()]);
+  showAcpm();
+    });
 });
 </script>
 
