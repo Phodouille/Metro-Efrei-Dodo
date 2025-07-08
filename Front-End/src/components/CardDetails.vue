@@ -1,115 +1,196 @@
 <template>
-    <div class="rectangle">
-      <div class="metro-line-logo">
-        <template v-for="(lineName, index) in displayLinesAsArray" :key="lineName">
-          <!-- Render the line component -->
-          <component :is="lineComponents[lineName]" />
-  
-          <!-- Custom SVG arrow between components -->
-          <svg
-            v-if="index < displayLinesAsArray.length - 1"
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="20"
-            viewBox="0 0 12 20"
-            fill="none"
-          >
-            <path
-              d="M1.11279 19L10.2059 10L1.11279 1"
-              stroke="black"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </template>
+  <div class="rectangle" v-if="displayLinesAsArray.length > 0">
+    <div class="metro-line-logo">
+      <template
+        v-for="(lineName, index) in displayLinesAsArray"
+        :key="lineName"
+      >
+        <!-- Render the component -->
+        <component :is="lineComponents[lineName]" />
+
+        <!-- Arrow between components -->
+        <svg
+          v-if="index < displayLinesAsArray.length - 1"
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="20"
+          viewBox="0 0 12 20"
+          fill="none"
+        >
+          <path
+            d="M1.11279 19L10.2059 10L1.11279 1"
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </template>
+    </div>
+
+    <!-- Show this only once at the bottom -->
+    <div class="svg-price">
+      <div class="price-svg">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="35"
+          height="35"
+          viewBox="0 0 35 35"
+          fill="none"
+        >
+          <path
+            d="M6.5625 11.6667L21.9917 4.2875C22.1666 4.20379 22.3564 4.15579 22.5501 4.14633C22.7438 4.13687 22.9374 4.16613 23.1196 4.23239C23.3019 4.29866 23.4691 4.40061 23.6114 4.53227C23.7538 4.66393 23.8685 4.82266 23.9488 4.99917L26.9792 11.6667"
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8.75 14.5834V11.6667"
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8.75 20.4167V21.875"
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8.75 27.7083V30.625"
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M29.1665 11.6667H5.83317C4.22234 11.6667 2.9165 12.9725 2.9165 14.5834V27.7084C2.9165 29.3192 4.22234 30.625 5.83317 30.625H29.1665C30.7773 30.625 32.0832 29.3192 32.0832 27.7084V14.5834C32.0832 12.9725 30.7773 11.6667 29.1665 11.6667Z"
+            stroke="black"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <div class="ticket-price">
+        <h4>2.50 Euros</h4>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, watch, computed } from "vue";
-  import { useNewStore } from "../stores/path.js";
-  
-  // Import all line components
-  import line1 from "../components/logo/line1.vue";
-  import line2 from "../components/logo/line2.vue";
-  import line3 from "../components/logo/line3.vue";
-  import line3b from "../components/logo/line3b.vue";
-  import line4 from "../components/logo/line4.vue";
-  import line5 from "../components/logo/line5.vue";
-  import line6 from "../components/logo/line6.vue";
-  import line7 from "../components/logo/line7.vue";
-  import line7b from "../components/logo/line7b.vue";
-  import line8 from "../components/logo/line8.vue";
-  import line9 from "../components/logo/line9.vue";
-  import line10 from "../components/logo/line10.vue";
-  import line11 from "../components/logo/line11.vue";
-  import line12 from "../components/logo/line12.vue";
-  import line14 from "../components/logo/line14.vue";
-  
-  // Line name → component map
-  const lineComponents = {
-    ligne1: line1,
-    ligne2: line2,
-    ligne3: line3,
-    ligne3b: line3b,
-    ligne4: line4,
-    ligne5: line5,
-    ligne6: line6,
-    ligne7: line7,
-    ligne7b: line7b,
-    ligne8: line8,
-    ligne9: line9,
-    ligne10: line10,
-    ligne11: line11,
-    ligne12: line12,
-    ligne14: line14,
-  };
-  
-  const store = useNewStore();
-  
-  const displayDijkstraPathName = ref([]);
-  const displayDijkstraPathLine = ref([]);
-  const displaySetDijkstraPathLine = ref(new Set());
-  
-  // Convert Set to array for rendering
-  const displayLinesAsArray = computed(() =>
-    Array.from(displaySetDijkstraPathLine.value)
-  );
-  
-  // Watch for store updates
-  watch(
-    () => [store.pathDijkstraName, store.pathDijkstraLine],
-    ([newNames, newLines]) => {
-      displayDijkstraPathName.value = newNames;
-      displayDijkstraPathLine.value = newLines;
-      displaySetDijkstraPathLine.value = new Set(newLines); // reset with new lines
-      console.log("Line components to display:", displaySetDijkstraPathLine.value);
-    }
-  );
-  </script>
-  
-  <style scoped>
-  .rectangle {
-    margin-top: 20px;
-    width: 555px;
-    height: 160px;
-    border: solid 1px black;
-    background-color: white;
-    border-radius: 30px;
-    padding: 10px;
+  </div>
+</template>
+<script setup>
+import { ref, watch, computed } from "vue";
+import { useNewStore } from "../stores/path.js";
+
+// Import all line components
+import line1 from "../components/logo/line1.vue";
+import line2 from "../components/logo/line2.vue";
+import line3 from "../components/logo/line3.vue";
+import line3b from "../components/logo/line3b.vue";
+import line4 from "../components/logo/line4.vue";
+import line5 from "../components/logo/line5.vue";
+import line6 from "../components/logo/line6.vue";
+import line7 from "../components/logo/line7.vue";
+import line7b from "../components/logo/line7b.vue";
+import line8 from "../components/logo/line8.vue";
+import line9 from "../components/logo/line9.vue";
+import line10 from "../components/logo/line10.vue";
+import line11 from "../components/logo/line11.vue";
+import line12 from "../components/logo/line12.vue";
+import line13 from "../components/logo/line13.vue"
+import line14 from "../components/logo/line14.vue";
+
+// Line name → component map
+const lineComponents = {
+  ligne1: line1,
+  ligne2: line2,
+  ligne3: line3,
+  ligne3b: line3b,
+  ligne4: line4,
+  ligne5: line5,
+  ligne6: line6,
+  ligne7: line7,
+  ligne7b: line7b,
+  ligne8: line8,
+  ligne9: line9,
+  ligne10: line10,
+  ligne11: line11,
+  ligne12: line12,
+  ligne13: line13,
+  ligne14: line14,
+};
+
+const store = useNewStore();
+
+const displayDijkstraPathName = ref([]);
+const displayDijkstraPathLine = ref([]);
+const displaySetDijkstraPathLine = ref(new Set());
+
+// Convert Set to array for rendering
+const displayLinesAsArray = computed(() =>
+  Array.from(displaySetDijkstraPathLine.value)
+);
+
+// Watch for store updates
+watch(
+  () => [store.pathDijkstraName, store.pathDijkstraLine],
+  ([newNames, newLines]) => {
+    displayDijkstraPathName.value = newNames;
+    displayDijkstraPathLine.value = newLines;
+    displaySetDijkstraPathLine.value = new Set(newLines); // reset with new lines
+    console.log(
+      "Line components to display:",
+      displaySetDijkstraPathLine.value
+    );
   }
-  
-  .metro-line-logo {
+);
+</script>
+
+<style scoped>
+.rectangle {
+  margin-top: 20px;
+  width: 555px;
+  height: 160px;
+  border: solid 1px black;
+  background-color: white;
+  border-radius: 30px;
+  padding: 10px;
+}
+
+.metro-line-logo {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: start;
+}
+
+.price,
+.time {
+  margin-top: 10px;
+}
+
+.svg-price {
+  display: flex;
+  margin-top: 45px;
+  font-size: large;
+  align-items: center;
+  margin-left: 5px;
+}
+
+.price-svg {
     display: flex;
-    gap: 10px;
+    justify-content: center;
     align-items: center;
-    justify-content: start;
-  }
-  
-  .price,
-  .time {
-    margin-top: 10px;
-  }
-  </style>
+}
+
+.ticket-price {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 7px;
+    margin-left: 5px;
+}
+</style>
