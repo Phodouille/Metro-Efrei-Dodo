@@ -1,3 +1,7 @@
 <template>
-    <h1>Graph Page</h1>
-  </template>
+  <testmap/>
+</template>
+
+<script setup>
+import testmap from '../components/testmap.vue'
+</script>
