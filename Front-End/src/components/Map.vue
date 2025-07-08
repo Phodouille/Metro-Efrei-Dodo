@@ -17,8 +17,6 @@ const stations = ref([]);
 const path = ref([]);
 const djikstraStations = ref([]);
 const filteredDjikstraStations = ref([]);
-const dijkstraPointsCoordinates = ref([]);
-const dynamicColorLines = ref([])
 const customMarkerIcon = L.icon({
   iconUrl: "src/assets/MarkerIcon.svg",
   iconSize: [18, 18], // size of the icon
@@ -41,7 +39,7 @@ const placeDijkstraPoint = () => {
         .bindTooltip(`${element.title} ${element.line}`, {
           permanent: true,
           direction: "top",
-          offset: [0,-10],
+          offset: [0, -10],
           opacity: 1,
         });
     } else {
@@ -65,12 +63,6 @@ const placeDijkstraPoint = () => {
 
 const drawLinesBetweenDijkstraPoint = () => {
   dijkstraPointsCoordinatesList();
-  // const lineMarker = L.polyline(dijkstraPointsCoordinates.value, {
-  //   color: "green",
-  //   weight: 5,
-  //   opacity: 0.8,
-  // });
-  // pointLineMarkerGroup.addLayer(lineMarker);
 };
 
 const dijkstraPointsCoordinatesList = () => {
@@ -207,6 +199,16 @@ const extractDijkstraStations = () => {
   }
 };
 
+const updateDijkstraPathName = () => {
+  store.pathDijkstraName = []
+  store.pathDijkstraLine = []
+  for (let index = 0; index < filteredDjikstraStations.value.length; index++) {
+    const element = filteredDjikstraStations.value[index];
+    store.pathDijkstraName.push(element.title)
+    store.pathDijkstraLine.push(element.line)
+  }
+}
+
 const filterDjikstraStations = () => {
   filteredDjikstraStations.value = [];
   for (let pathIndex = 0; pathIndex < path.value.length; pathIndex++) {
@@ -239,6 +241,7 @@ const filterDjikstraStations = () => {
       }
     }
   }
+  updateDijkstraPathName();
 };
 
 async function loadDijkstra() {
