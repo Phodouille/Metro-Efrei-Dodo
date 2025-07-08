@@ -15,6 +15,7 @@ const setIdSrcDst = ref(new Set());
 const listIdSrcDst = ref([]);
 const stations = ref([]);
 const path = ref([]);
+const befSetIdSrcDstList = ref([])
 const djikstraStations = ref([]);
 const filteredDjikstraStations = ref([]);
 const customMarkerIcon = L.icon({
@@ -134,10 +135,12 @@ async function loadStations() {
     ([newSrcData, newDstData]) => {
       sourceDataMap.value = newSrcData;
       destinationDataMap.value = newDstData;
+      console.log('Source data map :', sourceDataMap.value)
+      console.log('Destination data map:', destinationDataMap.value)
       searchId();
       listIdSrcDst.value = [...setIdSrcDst.value];
       console.log("stations list ", stations.value);
-      console.log(listIdSrcDst.value);
+      console.log("list id", listIdSrcDst.value);
       loadDijkstra();
     }
   );
@@ -164,16 +167,22 @@ async function fetchDijkstraPath() {
 }
 
 const searchId = () => {
-  setIdSrcDst.value = new Set();
+  befSetIdSrcDstList.value = []
   for (let index = 0; index < stations.value.length; index++) {
     const element = stations.value[index];
     if (
-      element.stop_name === sourceDataMap.value ||
-      element.stop_name === destinationDataMap.value
+      element.stop_name === sourceDataMap.value 
     ) {
-      setIdSrcDst.value.add(element.id);
+      befSetIdSrcDstList.value[0] = element.id
+    } else {
+      if (
+        element.stop_name === destinationDataMap.value
+      ) {
+        befSetIdSrcDstList.value[1] = element.id
+      }
     }
   }
+  setIdSrcDst.value = new Set(befSetIdSrcDstList.value);
 };
 
 const extractDijkstraStations = () => {
