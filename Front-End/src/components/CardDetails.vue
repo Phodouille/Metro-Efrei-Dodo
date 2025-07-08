@@ -27,58 +27,70 @@
         </svg>
       </template>
     </div>
-
-    <!-- Show this only once at the bottom -->
-    <div class="svg-price">
-      <div class="price-svg">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="35"
-          height="35"
-          viewBox="0 0 35 35"
-          fill="none"
-        >
-          <path
-            d="M6.5625 11.6667L21.9917 4.2875C22.1666 4.20379 22.3564 4.15579 22.5501 4.14633C22.7438 4.13687 22.9374 4.16613 23.1196 4.23239C23.3019 4.29866 23.4691 4.40061 23.6114 4.53227C23.7538 4.66393 23.8685 4.82266 23.9488 4.99917L26.9792 11.6667"
-            stroke="black"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M8.75 14.5834V11.6667"
-            stroke="black"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M8.75 20.4167V21.875"
-            stroke="black"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M8.75 27.7083V30.625"
-            stroke="black"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M29.1665 11.6667H5.83317C4.22234 11.6667 2.9165 12.9725 2.9165 14.5834V27.7084C2.9165 29.3192 4.22234 30.625 5.83317 30.625H29.1665C30.7773 30.625 32.0832 29.3192 32.0832 27.7084V14.5834C32.0832 12.9725 30.7773 11.6667 29.1665 11.6667Z"
-            stroke="black"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+    <div class="footer">
+      <div class="svg-price">
+        <div class="price-svg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="35"
+            height="35"
+            viewBox="0 0 35 35"
+            fill="none"
+          >
+            <path
+              d="M6.5625 11.6667L21.9917 4.2875C22.1666 4.20379 22.3564 4.15579 22.5501 4.14633C22.7438 4.13687 22.9374 4.16613 23.1196 4.23239C23.3019 4.29866 23.4691 4.40061 23.6114 4.53227C23.7538 4.66393 23.8685 4.82266 23.9488 4.99917L26.9792 11.6667"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M8.75 14.5834V11.6667"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M8.75 20.4167V21.875"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M8.75 27.7083V30.625"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M29.1665 11.6667H5.83317C4.22234 11.6667 2.9165 12.9725 2.9165 14.5834V27.7084C2.9165 29.3192 4.22234 30.625 5.83317 30.625H29.1665C30.7773 30.625 32.0832 29.3192 32.0832 27.7084V14.5834C32.0832 12.9725 30.7773 11.6667 29.1665 11.6667Z"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="ticket-price">
+          <h4>2.50€</h4>
+        </div>
       </div>
-      <div class="ticket-price">
-        <h4>2.50 Euros</h4>
+      <div class="right-side">
+        <div class="duration-min">
+          <div class="duration">
+            {{ displayDijkstraDuration }}
+          </div>
+          <div class="min">
+            <h4>min</h4>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Show this only once at the bottom -->
   </div>
 </template>
 <script setup>
@@ -100,7 +112,7 @@ import line9 from "../components/logo/line9.vue";
 import line10 from "../components/logo/line10.vue";
 import line11 from "../components/logo/line11.vue";
 import line12 from "../components/logo/line12.vue";
-import line13 from "../components/logo/line13.vue"
+import line13 from "../components/logo/line13.vue";
 import line14 from "../components/logo/line14.vue";
 
 // Line name → component map
@@ -128,6 +140,7 @@ const store = useNewStore();
 const displayDijkstraPathName = ref([]);
 const displayDijkstraPathLine = ref([]);
 const displaySetDijkstraPathLine = ref(new Set());
+const displayDijkstraDuration = ref(0);
 
 // Convert Set to array for rendering
 const displayLinesAsArray = computed(() =>
@@ -136,10 +149,15 @@ const displayLinesAsArray = computed(() =>
 
 // Watch for store updates
 watch(
-  () => [store.pathDijkstraName, store.pathDijkstraLine],
-  ([newNames, newLines]) => {
+  () => [
+    store.pathDijkstraName,
+    store.pathDijkstraLine,
+    store.pathDijkstraDuration,
+  ],
+  ([newNames, newLines, newDuration]) => {
     displayDijkstraPathName.value = newNames;
     displayDijkstraPathLine.value = newLines;
+    displayDijkstraDuration.value = newDuration;
     displaySetDijkstraPathLine.value = new Set(newLines); // reset with new lines
     console.log(
       "Line components to display:",
@@ -152,12 +170,14 @@ watch(
 <style scoped>
 .rectangle {
   margin-top: 20px;
-  width: 555px;
-  height: 160px;
+  width: 540px;
   border: solid 1px black;
   background-color: white;
   border-radius: 30px;
   padding: 10px;
+  display: flex;
+  flex-direction: column;
+  height: auto;
 }
 
 .metro-line-logo {
@@ -182,16 +202,45 @@ watch(
 }
 
 .price-svg {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .ticket-price {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+    margin-top: 5px;
+}
+
+.footer {
+  display: flex;
+  flex-direction: row;
+  height: 95px;
+}
+
+.duration {
+  display: flex;
+  font-size: 55px;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.min {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 11px;
+}
+
+.duration-min {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 7px;
-    margin-left: 5px;
+    margin-left: 19rem;
+}
+
+.right-side {
+    display: flex;
+    justify-content: flex-end;
 }
 </style>

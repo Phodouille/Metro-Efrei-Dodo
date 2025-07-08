@@ -6,5 +6,6 @@ export const useNewStore = defineStore('newStore', () => {
   const destinationData = ref('')
   const pathDijkstraName = ref([])
   const pathDijkstraLine = ref([])
-  return { sourceData, destinationData, pathDijkstraName, pathDijkstraLine }
+  const pathDijkstraDuration = ref(0)
+  return { sourceData, destinationData, pathDijkstraName, pathDijkstraLine , pathDijkstraDuration}
 })

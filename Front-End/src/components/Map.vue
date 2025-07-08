@@ -145,12 +145,15 @@ async function loadStations() {
 
 async function fetchDijkstraPath() {
   path.value = [];
+  store.pathDijkstraDuration = 0
   try {
     const response = await axios.get(
       `http://127.0.0.1:8000/dijkstra/${listIdSrcDst.value[0]}/${listIdSrcDst.value[1]}`
     );
     const data = response.data.path;
-
+    const distance = response.data.distance;
+    store.pathDijkstraDuration = distance;
+    console.log('check the store here', store.pathDijkstraDuration)
     for (let index = 0; index < data.length; index++) {
       const element = data[index];
       path.value.push(element);

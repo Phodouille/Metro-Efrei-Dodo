@@ -272,7 +272,7 @@ input::placeholder {
   background-color: #000000;
   color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 16px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -281,10 +281,12 @@ input::placeholder {
   margin-left: 26px;
   width: 147px;
   height: 145px;
-  border-radius: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border 0.3s ease-in-out;
+  transition-delay: 0.2s; /* Delay when hover OUT */
 }
 
 .send-button p {
@@ -302,6 +304,6 @@ input::placeholder {
   background-color: #f6f6f6;
   color: black;
   border: solid black 2px;
-  transition: background-color 0.3s ease-in-out;
+  transition-delay: 0s; /* No delay when hover IN */
 }
 </style>
