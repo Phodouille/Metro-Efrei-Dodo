@@ -119,13 +119,12 @@
         </div>
       </div>
     </div>
+    <div class="button-center">
+      <button class="send-button" v-on:click="sendSourceDestination">
+        <p>Go</p>
+      </button>
+    </div>
   </div>
-  <div class="button-center">
-    <button class="send-button" v-on:click="sendSourceDestination">
-    Send Data
-  </button>
-  </div>
-  
 </template>
 
 <script setup>
@@ -173,9 +172,7 @@ const sendSourceDestination = () => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get(
-      "http://127.0.0.1:8000/stations/"
-    );
+    const response = await axios.get("http://127.0.0.1:8000/stations/");
     stations.value = response.data;
   } catch (error) {
     console.error("Erreur:", error);
@@ -191,7 +188,7 @@ onMounted(async () => {
   border-radius: 25px;
   border: 2px solid #000;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .start-end {
@@ -272,21 +269,39 @@ input::placeholder {
 }
 
 .send-button {
-  padding: 10px 20px;
-  background-color: #000000; /* Green background */
-  color: white; /* White text */
-  border: none; /* Remove border */
-  border-radius: 8px; /* Rounded corners */
-  font-size: 16px; /* Font size */
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
   font-weight: bold;
-  cursor: pointer; /* Cursor on hover */
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
+  cursor: pointer;
+  margin-top: 40px;
+  margin-bottom: 10px;
+  margin-left: 26px;
+  width: 147px;
+  height: 145px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+.send-button p {
+  font-family: "Open Sans";
+  font-size: 85px;
+}
 .button-center {
-    display: flex;
-    justify-content: flex-end;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
 
+.send-button:hover {
+  background-color: #f6f6f6;
+  color: black;
+  border: solid black 2px;
+  transition: background-color 0.3s ease-in-out;
 }
 </style>
