@@ -19,31 +19,42 @@
 <script setup>
 import { reactive } from "vue";
 
+// on garde la séparation en groupes map vs panel
 const toggles = reactive([
-    { label: "Network", active: false },
-  { label: "MST", active: false },
-  { label: "Connexity", active: false },
-  { label: "Traffic", active: false },
+  { label: "Network",   group: "map",   active: false },
+  { label: "MST",       group: "map",   active: false },
+  { label: "Connexity", group: "panel", active: false },
+  { label: "News",      group: "panel", active: false },
 ]);
 
 function onSelect(selectedItem) {
-  toggles.forEach(item => {
-    item.active = (item === selectedItem);
-  });
-  // Événement global pour chaque bouton (un seul actif à la fois)
-  window.dispatchEvent(new CustomEvent("show-mst", { detail: false }));
-  window.dispatchEvent(new CustomEvent("show-connexity", { detail: false }));
-  window.dispatchEvent(new CustomEvent("show-network", { detail: false }));
-  window.dispatchEvent(new CustomEvent("show-traffic", { detail: false }));
+  if (selectedItem.group === "map") {
+    // un seul actif dans le groupe map (Network / MST)
+    toggles
+      .filter(t => t.group === "map")
+      .forEach(t => t.active = (t === selectedItem));
 
-  if (selectedItem.label === "Connexity") {
-    window.dispatchEvent(new CustomEvent("show-connexity", { detail: true }));
-  } else if (selectedItem.label === "Network") {
-    window.dispatchEvent(new CustomEvent("show-network", { detail: true }));
-  } else if (selectedItem.label === "MST") {
-    window.dispatchEvent(new CustomEvent("show-mst", { detail: true }));
-  } else if (selectedItem.label === "Traffic") {
-    window.dispatchEvent(new CustomEvent("show-traffic", { detail: true }));
+    // dispatch uniquement pour Network et MST
+    window.dispatchEvent(new CustomEvent("show-network", {
+      detail: toggles.find(t => t.label === "Network").active
+    }));
+    window.dispatchEvent(new CustomEvent("show-mst", {
+      detail: toggles.find(t => t.label === "MST").active
+    }));
+
+  } else {
+    // groupe panel (Connexity / News)
+    toggles
+      .filter(t => t.group === "panel")
+      .forEach(t => t.active = (t === selectedItem));
+
+    // dispatch uniquement pour Connexity et News
+    window.dispatchEvent(new CustomEvent("show-connexity", {
+      detail: toggles.find(t => t.label === "Connexity").active
+    }));
+    window.dispatchEvent(new CustomEvent("show-news", {
+      detail: toggles.find(t => t.label === "News").active
+    }));
   }
 }
 </script>
