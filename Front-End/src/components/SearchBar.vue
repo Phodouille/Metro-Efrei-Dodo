@@ -129,51 +129,63 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useNewStore } from "../stores/path.js";
 import axios from "axios";
+import { useNewStore } from "../stores/path.js";
 
 const store = useNewStore();
+
+// State
 const source = ref("");
 const destination = ref("");
+const stations = ref([]);
 const showSourceSuggestions = ref(false);
 const showDestinationSuggestions = ref(false);
-const stations = ref([]);
+const uniqueStationNames = ref([]);
 
-// Suggestion for "From"
+// Handlers
+// const selectSource = (name) => {
+//   source.value = name;
+//   showSourceSuggestions.value = false;
+// };
+// const selectDestination = (name) => {
+//   destination.value = name;
+//   showDestinationSuggestions.value = false;
+// };
+// const hideSourceSuggestions = () => setTimeout(() => showSourceSuggestions.value = false, 100);
+// const hideDestinationSuggestions = () => setTimeout(() => showDestinationSuggestions.value = false, 100);
+
+// Computed filtered suggestions
 const filteredSourceSuggestions = computed(() => {
-  if (!source.value || source.value.length < 2) return [];
-  return stations.value
-    .filter((station) =>
-      station.stop_name.toLowerCase().includes(source.value.toLowerCase())
-    )
-    .slice(0, 5)
-    .map((station) => station.stop_name);
+  if (source.value.length < 2) return [];
+  return uniqueStationNames.value
+    .filter((name) => name.toLowerCase().includes(source.value.toLowerCase()))
+    .slice(0, 5);
 });
 
-// Suggestion for "To"
 const filteredDestinationSuggestions = computed(() => {
-  if (!destination.value || destination.value.length < 2) return [];
-  return stations.value
-    .filter((station) =>
-      station.stop_name.toLowerCase().includes(destination.value.toLowerCase())
-    )
-    .slice(0, 5)
-    .map((station) => station.stop_name);
+  if (destination.value.length < 2) return [];
+  return uniqueStationNames.value
+    .filter((name) => name.toLowerCase().includes(destination.value.toLowerCase()))
+    .slice(0, 5);
 });
 
+// API fetch
+onMounted(async () => {
+  try {
+    const response = await axios.get("http://127.0.0.1:8000/stations/");
+    const names = response.data.map((s) => s.stop_name);
+    uniqueStationNames.value = [...new Set(names)]; // remove duplicates
+    stations.value = response.data;
+  } catch (error) {
+    console.error("Erreur lors du chargement des stations :", error);
+  }
+});
+
+// Send to store
 const sendSourceDestination = () => {
   store.sourceData = source.value;
   store.destinationData = destination.value;
 };
-
-onMounted(async () => {
-  try {
-    const response = await axios.get("http://127.0.0.1:8000/stations/");
-    stations.value = response.data;
-  } catch (error) {
-    console.error("Erreur:", error);
-  }
-});
 </script>
 
 <style scoped>
