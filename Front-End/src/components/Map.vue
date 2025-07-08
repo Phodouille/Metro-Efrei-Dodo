@@ -201,7 +201,7 @@ const extractDijkstraStations = () => {
           stop_name: element2.stop_name,
           line: element2.line,
           next_stop_id: element2.next_stop_id,
-          previous_stop_id: element2.prev_stop_id,
+          previous_stop_id: element2.previous_stop_id,
         };
         djikstraStations.value.push(obj);
       } else {
@@ -247,6 +247,8 @@ const filterDjikstraStations = () => {
           line: element2.line,
           lat: element2.lat,
           lon: element2.lon,
+          next_stop_id: element2.next_stop_id,
+          previous_stop_id: element2.previous_stop_id
         };
         filteredDjikstraStations.value.push(obj);
         break;
