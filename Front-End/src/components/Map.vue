@@ -15,7 +15,7 @@ const setIdSrcDst = ref(new Set());
 const listIdSrcDst = ref([]);
 const stations = ref([]);
 const path = ref([]);
-const befSetIdSrcDstList = ref([])
+const befSetIdSrcDstList = ref([]);
 const djikstraStations = ref([]);
 const filteredDjikstraStations = ref([]);
 const customMarkerIcon = L.icon({
@@ -30,25 +30,40 @@ let map = null;
 const placeDijkstraPoint = () => {
   pointLineMarkerGroup.clearLayers();
   for (let i = 0; i < filteredDjikstraStations.value.length; i++) {
-    if (i === 0 || i === filteredDjikstraStations.value.length - 1) {
+    if (i === 0) {
       const element = filteredDjikstraStations.value[i];
       const marker = L.marker([element.lat, element.lon], {
         icon: customMarkerIcon,
       });
       marker
         .addTo(pointLineMarkerGroup)
-        .bindTooltip(`${element.title} ${element.line}`, {
+        .bindTooltip(`📍${element.title} (${element.line})`, {
           permanent: true,
           direction: "top",
           offset: [0, -10],
           opacity: 1,
         });
     } else {
-      const element = filteredDjikstraStations.value[i];
-      const marker = L.marker([element.lat, element.lon], {
-        icon: customMarkerIcon,
-      }).bindPopup(`${element.title} ${element.line}`);
-      marker.addTo(pointLineMarkerGroup);
+      if (i === filteredDjikstraStations.value.length - 1) {
+        const element = filteredDjikstraStations.value[i];
+        const marker = L.marker([element.lat, element.lon], {
+          icon: customMarkerIcon,
+        });
+        marker
+          .addTo(pointLineMarkerGroup)
+          .bindTooltip(`🏁${element.title} (${element.line})`, {
+            permanent: true,
+            direction: "top",
+            offset: [0, -10],
+            opacity: 1,
+          });
+      } else {
+        const element = filteredDjikstraStations.value[i];
+        const marker = L.marker([element.lat, element.lon], {
+          icon: customMarkerIcon,
+        }).bindPopup(`${element.title} (${element.line})`);
+        marker.addTo(pointLineMarkerGroup);
+      }
     }
   }
   drawLinesBetweenDijkstraPoint();
@@ -135,8 +150,8 @@ async function loadStations() {
     ([newSrcData, newDstData]) => {
       sourceDataMap.value = newSrcData;
       destinationDataMap.value = newDstData;
-      console.log('Source data map :', sourceDataMap.value)
-      console.log('Destination data map:', destinationDataMap.value)
+      console.log("Source data map :", sourceDataMap.value);
+      console.log("Destination data map:", destinationDataMap.value);
       searchId();
       listIdSrcDst.value = [...setIdSrcDst.value];
       console.log("stations list ", stations.value);
@@ -148,7 +163,7 @@ async function loadStations() {
 
 async function fetchDijkstraPath() {
   path.value = [];
-  store.pathDijkstraDuration = 0
+  store.pathDijkstraDuration = 0;
   try {
     const response = await axios.get(
       `http://127.0.0.1:8000/dijkstra/${listIdSrcDst.value[0]}/${listIdSrcDst.value[1]}`
@@ -156,7 +171,7 @@ async function fetchDijkstraPath() {
     const data = response.data.path;
     const distance = response.data.distance;
     store.pathDijkstraDuration = distance;
-    console.log('check the store here', store.pathDijkstraDuration)
+    console.log("check the store here", store.pathDijkstraDuration);
     for (let index = 0; index < data.length; index++) {
       const element = data[index];
       path.value.push(element);
@@ -167,18 +182,14 @@ async function fetchDijkstraPath() {
 }
 
 const searchId = () => {
-  befSetIdSrcDstList.value = []
+  befSetIdSrcDstList.value = [];
   for (let index = 0; index < stations.value.length; index++) {
     const element = stations.value[index];
-    if (
-      element.stop_name === sourceDataMap.value 
-    ) {
-      befSetIdSrcDstList.value[0] = element.id
+    if (element.stop_name === sourceDataMap.value) {
+      befSetIdSrcDstList.value[0] = element.id;
     } else {
-      if (
-        element.stop_name === destinationDataMap.value
-      ) {
-        befSetIdSrcDstList.value[1] = element.id
+      if (element.stop_name === destinationDataMap.value) {
+        befSetIdSrcDstList.value[1] = element.id;
       }
     }
   }
@@ -212,14 +223,14 @@ const extractDijkstraStations = () => {
 };
 
 const updateDijkstraPathName = () => {
-  store.pathDijkstraName = []
-  store.pathDijkstraLine = []
+  store.pathDijkstraName = [];
+  store.pathDijkstraLine = [];
   for (let index = 0; index < filteredDjikstraStations.value.length; index++) {
     const element = filteredDjikstraStations.value[index];
-    store.pathDijkstraName.push(element.title)
-    store.pathDijkstraLine.push(element.line)
+    store.pathDijkstraName.push(element.title);
+    store.pathDijkstraLine.push(element.line);
   }
-}
+};
 
 const filterDjikstraStations = () => {
   filteredDjikstraStations.value = [];
@@ -248,7 +259,7 @@ const filterDjikstraStations = () => {
           lat: element2.lat,
           lon: element2.lon,
           next_stop_id: element2.next_stop_id,
-          previous_stop_id: element2.previous_stop_id
+          previous_stop_id: element2.previous_stop_id,
         };
         filteredDjikstraStations.value.push(obj);
         break;

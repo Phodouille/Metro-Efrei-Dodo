@@ -164,10 +164,6 @@ const filteredDestinationSuggestions = computed(() => {
 const sendSourceDestination = () => {
   store.sourceData = source.value;
   store.destinationData = destination.value;
-  console.log(store.sourceData);
-  console.log(store.destinationData);
-  source.value = "";
-  destination.value = "";
 };
 
 onMounted(async () => {
@@ -284,7 +280,6 @@ input::placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
-
   transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border 0.3s ease-in-out;
   transition-delay: 0.2s; /* Delay when hover OUT */
 }
