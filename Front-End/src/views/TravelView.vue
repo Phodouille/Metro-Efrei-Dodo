@@ -3,6 +3,7 @@
         <div class="header">
             <h1>Time to ride ! <br> Where to this time ?</h1>
             <SearchBar /> 
+            <CardDetails />
         </div>
         <div class="map">
             <Map />
@@ -15,6 +16,7 @@
 
 import SearchBar from '../components/SearchBar.vue';
 import Map from '../components/Map.vue';
+import CardDetails from '../components/CardDetails.vue';
 
 </script>
 
@@ -34,8 +36,9 @@ import Map from '../components/Map.vue';
         /* background-color: aqua; */
         height: 98.5vh;
         width: 84vw;
-        border-radius: 10px;
+        border-radius: 5px;
         display: flex;
+        padding: 8px 8px;
         box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.25);
     }
 </style>

@@ -4,5 +4,7 @@ import {ref} from 'vue'
 export const useNewStore = defineStore('newStore', () => {
   const sourceData = ref('')
   const destinationData = ref('')
-  return { sourceData, destinationData }
+  const pathDijkstraName = ref([])
+  const pathDijkstraLine = ref([])
+  return { sourceData, destinationData, pathDijkstraName, pathDijkstraLine }
 })

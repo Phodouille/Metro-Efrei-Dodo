@@ -17,63 +17,97 @@ const stations = ref([]);
 const path = ref([]);
 const djikstraStations = ref([]);
 const filteredDjikstraStations = ref([]);
-const dijkstraPointsCoordinates = ref([]);
 const customMarkerIcon = L.icon({
-  iconUrl: 'src/assets/MarkerIcon.svg',
-  iconSize: [18, 18],       // size of the icon
-  iconAnchor: [9, 9],     // point of the icon which will correspond to marker's location
-  popupAnchor: [0, -5] 
-})
+  iconUrl: "src/assets/MarkerIcon.svg",
+  iconSize: [18, 18], // size of the icon
+  iconAnchor: [9, 9], // point of the icon which will correspond to marker's location
+  popupAnchor: [0, -5],
+});
 let pointLineMarkerGroup = null;
 let map = null;
 
 const placeDijkstraPoint = () => {
   pointLineMarkerGroup.clearLayers();
   for (let i = 0; i < filteredDjikstraStations.value.length; i++) {
-    const element = filteredDjikstraStations.value[i];
-    const marker = L.marker([element.lat, element.lon], {icon: customMarkerIcon});
-    marker
-      .bindPopup(`${element.title} ${element.line}`)
-      .addTo(pointLineMarkerGroup);
-    // if (i === 0) {
-    //   const element = filterDjikstraStations.value[i]
-    //   const marker = L.marker([element.lat, element.lon], {icon: customMarkerIcon})
-
-    // }
+    if (i === 0 || i === filteredDjikstraStations.value.length - 1) {
+      const element = filteredDjikstraStations.value[i];
+      const marker = L.marker([element.lat, element.lon], {
+        icon: customMarkerIcon,
+      });
+      marker
+        .addTo(pointLineMarkerGroup)
+        .bindTooltip(`${element.title} ${element.line}`, {
+          permanent: true,
+          direction: "top",
+          offset: [0, -10],
+          opacity: 1,
+        });
+    } else {
+      const element = filteredDjikstraStations.value[i];
+      const marker = L.marker([element.lat, element.lon], {
+        icon: customMarkerIcon,
+      }).bindPopup(`${element.title} ${element.line}`);
+      marker.addTo(pointLineMarkerGroup);
+    }
   }
   drawLinesBetweenDijkstraPoint();
   if (pointLineMarkerGroup.getLayers().length > 0) {
-  map.flyToBounds(pointLineMarkerGroup.getBounds(), {
-    padding: [50, 50],     // Adds margin around the points
-    maxZoom: 20,           // Prevents zooming in too much
-    animate: true,
-    duration: 0.5         // Duration of animation in seconds
-  });
-}
+    map.flyToBounds(pointLineMarkerGroup.getBounds(), {
+      padding: [50, 50], // Adds margin around the points
+      maxZoom: 20, // Prevents zooming in too much
+      animate: true,
+      duration: 0.5, // Duration of animation in seconds
+    });
+  }
 };
 
 const drawLinesBetweenDijkstraPoint = () => {
   dijkstraPointsCoordinatesList();
-  const lineMarker = L.polyline(dijkstraPointsCoordinates.value, {
-    color: "green",
-    weight: 5,
-    opacity: 0.8,
-  });
-  pointLineMarkerGroup.addLayer(lineMarker);
 };
 
 const dijkstraPointsCoordinatesList = () => {
-  dijkstraPointsCoordinates.value = [];
-  for (let index = 0; index < filteredDjikstraStations.value.length; index++) {
-    const element = filteredDjikstraStations.value[index];
-    dijkstraPointsCoordinates.value[index] = [element.lat, element.lon];
+  const lineColors = {
+    ligne1: "rgba(255,190,0,1)",
+    ligne2: "rgba(0,85,200,1)",
+    ligne3: "rgba(110,110,0,1)",
+    ligne3b: "rgba(130,200,230,1)",
+    ligne4: "rgba(160,0,110,1)",
+    ligne5: "rgba(255,90,0,1)",
+    ligne6: "rgba(129,220,115,1)",
+    ligne7: "rgba(255,130,180,1)",
+    ligne7_2: "rgba(255,130,180,1)",
+    ligne7b: "rgba(129,220,115,1)",
+    ligne8: "rgba(210,130,190,1)",
+    ligne9: "rgba(210,210,0,1)",
+    ligne10: "rgba(220,150,0,1)",
+    ligne11: "rgba(110,73,30,1)",
+    ligne12: "rgba(0,100,60,1)",
+    ligne13: "rgba(130,200,230,1)",
+    ligne14: "rgba(100,1,130,1)",
+  };
+
+  for (let i = 0; i < filteredDjikstraStations.value.length - 1; i++) {
+    const current = filteredDjikstraStations.value[i];
+    const next = filteredDjikstraStations.value[i + 1];
+
+    const color = lineColors[next.line] || "gray";
+
+    const polyline = L.polyline(
+      [
+        [current.lat, current.lon],
+        [next.lat, next.lon],
+      ],
+      {
+        color,
+        weight: 5,
+      }
+    );
+    pointLineMarkerGroup.addLayer(polyline);
   }
 };
 async function fetchStations() {
   try {
-    const response = await axios.get(
-      "http://127.0.0.1:8000/stations/"
-    );
+    const response = await axios.get("http://127.0.0.1:8000/stations/");
     const data = response.data;
     for (let index = 0; index < data.length; index++) {
       const element = data[index];
@@ -102,7 +136,7 @@ async function loadStations() {
       destinationDataMap.value = newDstData;
       searchId();
       listIdSrcDst.value = [...setIdSrcDst.value];
-      console.log('stations list ', stations.value);
+      console.log("stations list ", stations.value);
       console.log(listIdSrcDst.value);
       loadDijkstra();
     }
@@ -141,8 +175,8 @@ const searchId = () => {
 
 const extractDijkstraStations = () => {
   djikstraStations.value = [];
-  console.log('check here bro path', path.value)
-  console.log('check here bro stations', stations.value)
+  console.log("check here bro path", path.value);
+  console.log("check here bro stations", stations.value);
   for (let index1 = 0; index1 < path.value.length; index1++) {
     const element1 = path.value[index1];
     for (let index2 = 0; index2 < stations.value.length; index2++) {
@@ -163,8 +197,17 @@ const extractDijkstraStations = () => {
       }
     }
   }
-
 };
+
+const updateDijkstraPathName = () => {
+  store.pathDijkstraName = []
+  store.pathDijkstraLine = []
+  for (let index = 0; index < filteredDjikstraStations.value.length; index++) {
+    const element = filteredDjikstraStations.value[index];
+    store.pathDijkstraName.push(element.title)
+    store.pathDijkstraLine.push(element.line)
+  }
+}
 
 const filterDjikstraStations = () => {
   filteredDjikstraStations.value = [];
@@ -198,11 +241,12 @@ const filterDjikstraStations = () => {
       }
     }
   }
+  updateDijkstraPathName();
 };
 
 async function loadDijkstra() {
   await fetchDijkstraPath();
-  console.log('this is fetch dji path', path.value);
+  console.log("this is fetch dji path", path.value);
   extractDijkstraStations();
   console.log("Check here : ", djikstraStations.value);
   filterDjikstraStations();
@@ -234,7 +278,7 @@ onMounted(() => {
 #map {
   width: 47vw;
   height: 90vh;
-  border-radius: 50px;
+  border-radius: 10px;
   margin-left: 36px;
   margin-top: 9px;
   box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25);
