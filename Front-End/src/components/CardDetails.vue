@@ -7,9 +7,9 @@
     <div class="show-details" v-if="showDetails">
       <div v-for="element in displayDijkstraPathName" :key="element" class="li">
         <ul>
-            <li>
-                {{ element }}
-            </li>
+          <li>
+            {{ element }}
+          </li>
         </ul>
       </div>
     </div>
@@ -104,8 +104,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Show this only once at the bottom -->
   </div>
 </template>
 <script setup>
@@ -154,16 +152,33 @@ const store = useNewStore();
 
 const displayDijkstraPathName = ref([]);
 const displayDijkstraPathLine = ref([]);
-const displaySetDijkstraPathLine = ref(new Set());
+const displayRemoveDuplicateDijkstraPathLine = ref([]);
 const displayDijkstraDuration = ref(0);
 const showDetails = ref(false);
 
-// Convert Set to array for rendering
+// Convert to array for rendering
 const displayLinesAsArray = computed(() =>
-  Array.from(displaySetDijkstraPathLine.value)
+  Array.from(displayRemoveDuplicateDijkstraPathLine.value)
 );
 
-// Watch for store updates
+const removeConsecutiveDuplicates = () => {
+  displayRemoveDuplicateDijkstraPathLine.value = [];
+  for (let index = 1; index < displayDijkstraPathLine.value.length; index++) {
+    if (index === 1) {
+      const element1 = displayDijkstraPathLine.value[index-1];
+      displayRemoveDuplicateDijkstraPathLine.value.push(element1);
+    } else {
+      if (
+        displayDijkstraPathLine.value[index] !==
+        displayDijkstraPathLine.value[index - 1]
+      ) {
+        const element2 = displayDijkstraPathLine.value[index];
+        displayRemoveDuplicateDijkstraPathLine.value.push(element2);
+      }
+    }
+  }
+};
+
 watch(
   () => [
     store.pathDijkstraName,
@@ -173,12 +188,9 @@ watch(
   ([newNames, newLines, newDuration]) => {
     displayDijkstraPathName.value = newNames;
     displayDijkstraPathLine.value = newLines;
+    console.log("CHECK ABSOULTELY HERE", displayDijkstraPathLine.value);
+    removeConsecutiveDuplicates();
     displayDijkstraDuration.value = newDuration;
-    displaySetDijkstraPathLine.value = new Set(newLines); // reset with new lines
-    console.log(
-      "Line components to display:",
-      displaySetDijkstraPathLine.value
-    );
   }
 );
 </script>
@@ -261,22 +273,22 @@ watch(
 }
 
 .li {
-    font-family: 'Open Sans';
-    font-size: small;
-    font-weight: lighter;
+  font-family: "Open Sans";
+  font-size: small;
+  font-weight: lighter;
 }
 
 ul li {
-    margin-bottom: 1px;
-    height: 20px;
+  margin-bottom: 1px;
+  height: 20px;
 }
 
 ul {
-    list-style-type: disc;
+  list-style-type: disc;
 }
 
 .show-details {
-    margin-top: -20px;
-    padding-bottom: 20px;
+  margin-top: -20px;
+  padding-bottom: 20px;
 }
 </style>
