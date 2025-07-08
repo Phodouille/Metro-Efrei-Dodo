@@ -1,12 +1,11 @@
 <template>
   <div class="line-buttons">
-    <!-- On boucle sur chaque groupe de 3 lignes -->
+    <!-- On boucle sur chaque groupe de 4 lignes -->
     <div
       v-for="(chunk, rowIndex) in chunkedLines"
       :key="rowIndex"
       class="line-row"
     >
-      <!-- Puis, dans chaque groupe, on affiche les 3 boutons -->
       <button
         v-for="line in chunk"
         :key="line.name"
@@ -20,9 +19,9 @@
 </template>
 
 <script setup>
-import { defineEmits, computed } from 'vue'
+import { computed } from 'vue'
 
-// tes imports de logo...
+// imports de tes logos
 import Line1  from './logo/line1.vue'
 import Line2  from './logo/line2.vue'
 import Line3  from './logo/line3.vue'
@@ -44,7 +43,7 @@ const lines = [
   { name: '1',  component: Line1  },
   { name: '2',  component: Line2  },
   { name: '3',  component: Line3  },
-  {name: '3b', component: Line3b },
+  { name: '3b', component: Line3b },
   { name: '4',  component: Line4  },
   { name: '5',  component: Line5  },
   { name: '6',  component: Line6  },
@@ -59,7 +58,7 @@ const lines = [
   { name: '14', component: Line14 },
 ]
 
-// Chunker en groupes de 3
+// Découpe en lignes de 4 boutons
 const chunkedLines = computed(() => {
   const size = 4
   const chunks = []
@@ -69,26 +68,28 @@ const chunkedLines = computed(() => {
   return chunks
 })
 
-// Émission de l'event
-const emit = defineEmits(['select-line'])
 function selectLine(lineName) {
-  emit('select-line', lineName)
+  // on envoie "ligne1", "ligne2", etc.
+  const apiParam = 'ligne' + lineName
+  window.dispatchEvent(
+    new CustomEvent('show-line', { detail: apiParam })
+  )
 }
 </script>
 
 <style scoped>
 .line-buttons {
-    margin-top: 80px;
-  margin-left: 150px;
+  position: absolute;
+  top: 150px;
+  right: 40px;
   display: flex;
   flex-direction: column;
-  gap: 12px;           /* espace entre les lignes */
+  gap: 12px;
 }
 
 .line-row {
   display: flex;
-  gap: 60px;           /* espace entre les boutons */
-  justify-content: flex-start;
+  gap: 60px;
 }
 
 .line-btn {
