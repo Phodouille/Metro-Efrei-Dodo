@@ -7,6 +7,7 @@
       <div class="left-nav-component">
         <span class="left-nav-button"><LeftNavBar LeftNameSideBar="Travel" :LeftSideBarIcon="TravelSvgIcon" @click="() => goTo('/travel')"/></span>
         <span class="left-nav-button"><LeftNavBar LeftNameSideBar="Graph" :LeftSideBarIcon="GraphSvgIcon" @click="() => goTo('/graph')"/></span>
+        <span class="left-nav-button"><LeftNavBar LeftNameSideBar="Lines" :LeftSideBarIcon="GraphSvgIcon" @click="() => goTo('/lines')"/></span>
         <span class="left-nav-button"><LeftNavBar LeftNameSideBar="Recents" :LeftSideBarIcon="RecentsSvgIcon" @click="() => goTo('/recents')"/></span>
         <span class="left-nav-button"><LeftNavBar LeftNameSideBar="Saved" :LeftSideBarIcon="SavedSvgIcon" @click="() => goTo('/saved')"/></span>
       </div>  
