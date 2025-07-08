@@ -163,20 +163,31 @@ const displayLinesAsArray = computed(() =>
 
 const removeConsecutiveDuplicates = () => {
   displayRemoveDuplicateDijkstraPathLine.value = [];
-  for (let index = 1; index < displayDijkstraPathLine.value.length; index++) {
-    if (index === 1) {
-      const element1 = displayDijkstraPathLine.value[index-1];
-      displayRemoveDuplicateDijkstraPathLine.value.push(element1);
-    } else {
-      if (
-        displayDijkstraPathLine.value[index] !==
-        displayDijkstraPathLine.value[index - 1]
-      ) {
-        const element2 = displayDijkstraPathLine.value[index];
-        displayRemoveDuplicateDijkstraPathLine.value.push(element2);
-      }
+
+  const arr = displayDijkstraPathLine.value;
+  if (arr.length === 0) return;
+
+  const first = arr[0];
+  const rest = arr.slice(1);
+
+  // Check if the first element appears again
+  const firstAppearsAgain = rest.includes(first);
+
+  let deduped = [];
+
+  if (firstAppearsAgain) {
+    deduped.push(first);
+  }
+
+  for (let i = 1; i < arr.length; i++) {
+    const current = arr[i];
+    const previous = arr[i - 1];
+    if (current !== previous) {
+      deduped.push(current);
     }
   }
+
+  displayRemoveDuplicateDijkstraPathLine.value = deduped;
 };
 
 watch(
@@ -190,6 +201,10 @@ watch(
     displayDijkstraPathLine.value = newLines;
     console.log("CHECK ABSOULTELY HERE", displayDijkstraPathLine.value);
     removeConsecutiveDuplicates();
+    console.log(
+      "Remove duplicates",
+      displayRemoveDuplicateDijkstraPathLine.value
+    );
     displayDijkstraDuration.value = newDuration;
   }
 );
