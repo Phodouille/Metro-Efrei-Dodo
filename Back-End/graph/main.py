@@ -265,7 +265,7 @@ def check_connexity():
 # Si tu veux lancer Uvicorn sans l’ajouter au PATH, tu peux aussi utiliser :
 #    python -m uvicorn main:app --reload
 
-@app.get("/acpm")
+@app.get("/acpm/")
 def get_kruskal():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -291,7 +291,7 @@ def get_kruskal():
     return acpm_id
 
 
-@app.get("/acpm/points")
+@app.get("/acpm/points/")
 def get_kruskal_points():
     kruskal = get_kruskal()
 
