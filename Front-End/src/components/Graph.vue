@@ -234,7 +234,7 @@ onMounted(async () => {
 
 <style scoped>
 #map {
-  width: 47vw;
+  width: 80vw;
   height: 90vh;
   border-radius: 50px;
   margin-left: 36px;

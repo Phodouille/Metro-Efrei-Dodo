@@ -121,7 +121,7 @@
     </div>
     <div class="button-center">
       <button class="send-button" v-on:click="sendSourceDestination">
-        <p>Go</p>
+        <p>GO</p>
       </button>
     </div>
   </div>
@@ -287,8 +287,8 @@ input::placeholder {
   margin-top: 40px;
   margin-bottom: 10px;
   margin-left: 26px;
-  width: 147px;
-  height: 145px;
+  width: 107px;
+  height: 107px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -298,7 +298,8 @@ input::placeholder {
 
 .send-button p {
   font-family: "Open Sans";
-  font-size: 85px;
+  font-size: 34px;
+  font-weight: 800;
 }
 .button-center {
   display: flex;
