@@ -67,13 +67,14 @@ function onSelect(selected) {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  background: #fff;
+  /*background: #fcfafa; */
+  background: rgba(255, 255, 255, 0.689);
   border-radius: 24px;
   box-shadow: 0 0 8px 2px rgba(54,54,54,0.12);
   padding: 24px 18px;
   position: absolute;
-  top: 40px;
-  right: 40px;
+  top: 80px;
+  right: 45px;
   z-index: 1000;
   min-width: 170px;
 }
@@ -81,6 +82,7 @@ function onSelect(selected) {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  
 }
 .sidebar-btn {
   width: 100%;
@@ -92,6 +94,7 @@ function onSelect(selected) {
   font-size: 1.1em;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+  border: #646464 solid 0.1px;
 }
 .sidebar-btn.active {
   background: #222;
