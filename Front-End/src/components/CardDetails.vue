@@ -277,13 +277,23 @@ watch(
 .rectangle {
   margin-top: 20px;
   width: 540px;
-  border: solid 1px black;
+  border: solid 1px white;
   background-color: white;
   border-radius: 30px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   height: auto;
+
+  /* 👇 Add this for animation */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.rectangle:hover {
+  transform: scale(1.015); /* subtle lift */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* soft shadow */
+  border-color: black; /* optional: darken border */
 }
 
 .metro-line-logo {

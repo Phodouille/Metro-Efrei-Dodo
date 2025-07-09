@@ -38,11 +38,12 @@ import CardDetails from "../components/CardDetails.vue";
   /* background-color: aqua; */
   display: flex;
   flex-direction: column;
-  width: 84vw;
+  width: 83vw;
   border-radius: 5px;
   display: flex;
   padding: 8px 8px;
   box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.25);
+  padding-bottom: 35px;
 }
 
 .row {
