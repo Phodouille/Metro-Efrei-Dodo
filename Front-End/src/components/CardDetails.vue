@@ -5,17 +5,52 @@
     @click="showDetails = !showDetails"
   >
     <div class="show-details" v-if="showDetails">
-      <div v-for="element in displayDijkstraPathName" :key="element" class="li">
-        <ul>
-          <li>
-            {{ element }}
-          </li>
-        </ul>
+      <div
+        v-for="(element, index) in displayDijkstraPathName"
+        :key="element"
+        class="li"
+      >
+        <div v-if="index === 0" class="bold-start">
+          <ul>
+            <li>📍 {{ element }}</li>
+          </ul>
+        </div>
+        <div
+          v-else-if="index === displayDijkstraPathName.length - 1"
+          class="bold-end"
+        >
+          <ul>
+            <li>🏁 {{ element }}</li>
+          </ul>
+        </div>
+        <div v-else class="li-style">
+          <ul>
+            <li>
+              {{ element }}
+            </li>
+          </ul>
+        </div>
       </div>
       <div>
         <div class="rectangle-co2">
-          <div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#108833" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf-icon lucide-leaf"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+          <div class="leaf">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#108833"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-leaf-icon lucide-leaf"
+            >
+              <path
+                d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+              />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
           </div>
           <div class="co2-data">
             <p>CO2 emissions for this route : {{ estimatedCo2Grams }}g</p>
@@ -208,7 +243,7 @@ const estimateCarbonFootprint = (numberOfStops) => {
   const averageDistancePerStopKm = 0.6;
   const emissionPerKmG = 3.5;
   estimatedDistanceKm.value = numberOfStops * averageDistancePerStopKm;
-  estimatedCo2Grams.value = estimatedDistanceKm.value * emissionPerKmG;
+  estimatedCo2Grams.value = Math.round(estimatedDistanceKm.value * emissionPerKmG);
 };
 watch(
   () => [
@@ -226,8 +261,11 @@ watch(
       displayRemoveDuplicateDijkstraPathLine.value
     );
     displayDijkstraDuration.value = newDuration;
-    estimateCarbonFootprint(displayDijkstraPathLine.value.length-1);
-    console.log('this is the estimated carbon footprint', estimatedCo2Grams.value)
+    estimateCarbonFootprint(displayDijkstraPathLine.value.length - 1);
+    console.log(
+      "this is the estimated carbon footprint",
+      estimatedCo2Grams.value
+    );
   }
 );
 </script>
@@ -330,9 +368,10 @@ ul {
 }
 
 .rectangle-co2 {
-  width: 270px;
+  /* width: 360px; */
+  max-width: 400px;
   height: 50px;
-  border: solid #108833 1px;
+  border: solid #108833 4px;
   margin-top: 40px;
   margin-left: 28px;
   border-radius: 5px;
@@ -342,6 +381,33 @@ ul {
 }
 
 .co2-data {
-  font-size: 10px;
+  font-size: 14px;
+  padding-left: 10px;
+}
+
+.bold-end{
+  font-weight: bolder;
+  font-size: larger;
+  display: flex;
+  margin-left: -13px;
+}
+
+.bold-start {
+  font-weight: bolder;
+  font-size: larger;
+  display: flex;
+  margin-left: -18px;
+}
+
+.bold-end li, .bold-start li {
+  list-style-type: none;
+}
+
+.li-style li{
+  list-style-type: default;
+}
+
+.leaf {
+  display: flex;
 }
 </style>
