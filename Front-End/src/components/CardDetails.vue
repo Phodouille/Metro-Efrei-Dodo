@@ -12,6 +12,16 @@
           </li>
         </ul>
       </div>
+      <div>
+        <div class="rectangle-co2">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#108833" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf-icon lucide-leaf"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+          </div>
+          <div class="co2-data">
+            <p>CO2 emissions for this route : {{ estimatedCo2Grams }}g</p>
+          </div>
+        </div>
+      </div>
     </div>
     <div v-else>
       <div class="metro-line-logo">
@@ -317,5 +327,21 @@ ul {
 .show-details {
   margin-top: -20px;
   padding-bottom: 20px;
+}
+
+.rectangle-co2 {
+  width: 270px;
+  height: 50px;
+  border: solid #108833 1px;
+  margin-top: 40px;
+  margin-left: 28px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.co2-data {
+  font-size: 10px;
 }
 </style>
