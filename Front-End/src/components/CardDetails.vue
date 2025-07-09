@@ -155,6 +155,8 @@ const displayDijkstraPathLine = ref([]);
 const displayRemoveDuplicateDijkstraPathLine = ref([]);
 const displayDijkstraDuration = ref(0);
 const showDetails = ref(false);
+const estimatedDistanceKm = ref(0);
+const estimatedCo2Grams = ref(0);
 
 // Convert to array for rendering
 const displayLinesAsArray = computed(() =>
@@ -190,6 +192,14 @@ const removeConsecutiveDuplicates = () => {
   displayRemoveDuplicateDijkstraPathLine.value = deduped;
 };
 
+const estimateCarbonFootprint = (numberOfStops) => {
+  estimatedDistanceKm.value = 0;
+  estimatedCo2Grams.value = 0;
+  const averageDistancePerStopKm = 0.6;
+  const emissionPerKmG = 3.5;
+  estimatedDistanceKm.value = numberOfStops * averageDistancePerStopKm;
+  estimatedCo2Grams.value = estimatedDistanceKm.value * emissionPerKmG;
+};
 watch(
   () => [
     store.pathDijkstraName,
@@ -206,6 +216,8 @@ watch(
       displayRemoveDuplicateDijkstraPathLine.value
     );
     displayDijkstraDuration.value = newDuration;
+    estimateCarbonFootprint(displayDijkstraPathLine.value.length-1);
+    console.log('this is the estimated carbon footprint', estimatedCo2Grams.value)
   }
 );
 </script>
