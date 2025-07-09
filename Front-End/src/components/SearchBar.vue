@@ -284,9 +284,9 @@ input::placeholder {
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  margin-top: 40px;
+  margin-top: 74px;
   margin-bottom: 10px;
-  margin-left: 26px;
+  margin-left: 45px;
   width: 107px;
   height: 107px;
   display: flex;

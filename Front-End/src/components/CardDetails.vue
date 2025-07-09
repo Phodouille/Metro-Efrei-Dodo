@@ -209,29 +209,32 @@ const displayLinesAsArray = computed(() =>
 );
 
 const removeConsecutiveDuplicates = () => {
-  displayRemoveDuplicateDijkstraPathLine.value = [];
-
   const arr = displayDijkstraPathLine.value;
+  const deduped = [];
+
   if (arr.length === 0) return;
 
-  const first = arr[0];
-  const rest = arr.slice(1);
-
-  // Check if the first element appears again
-  const firstAppearsAgain = rest.includes(first);
-
-  let deduped = [];
-
-  if (firstAppearsAgain) {
-    deduped.push(first);
-  }
-
-  for (let i = 1; i < arr.length; i++) {
+  for (let i = 0; i < arr.length; i++) {
     const current = arr[i];
-    const previous = arr[i - 1];
-    if (current !== previous) {
-      deduped.push(current);
+    const prev = arr[i - 1];
+    const next = arr[i + 1];
+    const next2 = arr[i + 2];
+
+    // Special rule: skip the first element if it's not equal to next and next+1
+    if (
+      i === 0 &&
+      current !== next &&
+      current !== next2
+    ) {
+      continue;
     }
+
+    // Skip if it's the same as the previous (we already added it)
+    if (current === prev) {
+      continue;
+    }
+
+    deduped.push(current);
   }
 
   displayRemoveDuplicateDijkstraPathLine.value = deduped;
