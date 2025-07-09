@@ -286,9 +286,9 @@ input::placeholder {
 }
 
 .send-button {
-  background-color: #000000;
+  background-color: black;
   color: white;
-  border: none;
+  border: 2px solid black;
   border-radius: 16px;
   font-size: 16px;
   font-weight: bold;
@@ -301,8 +301,28 @@ input::placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border 0.3s ease-in-out;
-  transition-delay: 0.2s; /* Delay when hover OUT */
+  font-family: "Open Sans";
+  font-size: 34px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.2s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.send-button:hover {
+  background-color: white;
+  color: black;
+  transform: scale(1.05);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.send-button:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .send-button p {
@@ -317,10 +337,10 @@ input::placeholder {
   align-items: center;
 }
 
-.send-button:hover {
+/* .send-button:hover {
   background-color: #f6f6f6;
   color: black;
   border: solid black 2px;
-  transition-delay: 0s; /* No delay when hover IN */
-}
+  transition-delay: 0s; 
+} */
 </style>
