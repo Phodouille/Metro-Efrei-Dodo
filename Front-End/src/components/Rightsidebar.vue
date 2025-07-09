@@ -67,8 +67,14 @@ function onSelect(selected) {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /*background: #fcfafa; */
-  background: rgba(255, 255, 255, 0.689);
+  /*background: #fcfafa; 
+  background: rgba(255, 255, 255, 0.689);*/
+
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
   border-radius: 24px;
   box-shadow: 0 0 8px 2px rgba(54,54,54,0.12);
   padding: 24px 18px;
