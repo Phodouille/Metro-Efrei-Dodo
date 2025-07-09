@@ -236,10 +236,15 @@ onMounted(async () => {
 #map {
   width: 82vw;
   height: 90vh;
-  border-radius: 50px;
+  /* border-radius: 50px; */
   margin-left: 36px;
   margin-top: 9px;
-  box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25);
+  /* box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25); */
   margin-top: 50px;
+
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 25px;
+  overflow: hidden;
+  margin-right: 20px;
 }
 </style>
