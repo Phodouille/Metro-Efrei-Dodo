@@ -194,9 +194,18 @@ const sendSourceDestination = () => {
   width: 555px;
   height: 220px;
   border-radius: 25px;
-  border: 2px solid #000;
+  border: 2px solid white;
   display: flex;
   flex-direction: row;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* soft base shadow */
+}
+
+.rectangle:hover {
+  transform: scale(1.01); /* subtle zoom */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); /* elevate shadow */
+  border-color: #000000;
+  cursor: pointer;
 }
 
 .start-end {
