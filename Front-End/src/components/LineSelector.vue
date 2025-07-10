@@ -93,7 +93,7 @@ onMounted(() => {
     }
   ).addTo(map)
 
-  stopsLayer = L.layerGroup().addTo(map)
+  stopsLayer = L.featureGroup().addTo(map)
 
   window.addEventListener('show-line', e => {
     const lineParam = e.detail  // e.g. "ligne1", "ligne3b", etc.
