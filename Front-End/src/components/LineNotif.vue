@@ -116,14 +116,28 @@ onUnmounted(() => {
 <style scoped>
 .line-notif {
   position: absolute;
-  top: 20px;
-  right: 40px;
+  top: 565px;
+  right: 88px;
   background: #fff;
   padding: 12px 16px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   min-width: 220px;
   font-family: sans-serif;
   z-index: 1000;
+  border: 1.5px solid transparent;
+  transition: 
+    box-shadow 0.3s ease,
+    transform 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.line-notif:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: scale(1.02);
+  background-color: #f9f9f9;
+  border-color: black;
+  cursor:pointer;
 }
 </style>

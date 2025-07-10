@@ -53,7 +53,7 @@
             </svg>
           </div>
           <div class="co2-data">
-            <p>CO2 emissions for this route : {{ estimatedCo2Grams }}g</p>
+            <p>CO2 emissions for this route : {{ estimatedCo2Grams }}kg</p>
           </div>
         </div>
       </div>

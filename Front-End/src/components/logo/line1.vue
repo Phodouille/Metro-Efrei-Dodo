@@ -26,18 +26,19 @@
   height: 41px;
   border-radius: 50%;
   display: flex;
-  background-color: rgba(255, 190, 0, 255);
+  background-color: rgba(255,190,0,255);
   justify-content: center;
   align-items: center;
 }
 
 .metro-m-l {
-  display: flex;
-  width: 85px;
-  justify-content: space-between;
+    display: flex;
+    width: 85px;
+    justify-content: space-between;
+    gap: 5px;
 }
 
 span {
-  font-family: "Open Sans";
+    font-family: 'Open Sans';
 }
 </style>

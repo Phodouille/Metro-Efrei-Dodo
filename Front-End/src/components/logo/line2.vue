@@ -35,6 +35,7 @@
   display: flex;
   width: 85px;
   justify-content: space-between;
+  gap: 5px;
 }
 
 span {

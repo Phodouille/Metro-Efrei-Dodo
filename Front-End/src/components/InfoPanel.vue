@@ -107,6 +107,7 @@ const isNewsView      = computed(() => currentView.value === 'News')
   right: 40px;
   z-index: 1000;
   min-width: 170px;
+  margin-top: 30px;
 }
 
 .news-item h4 {

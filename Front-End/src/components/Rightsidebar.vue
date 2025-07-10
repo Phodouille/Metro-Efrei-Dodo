@@ -83,6 +83,8 @@ function onSelect(selected) {
   right: 45px;
   z-index: 1000;
   min-width: 170px;
+  margin-right: 14px;
+  margin-top: -30px;
 }
 .sidebar-item {
   display: flex;

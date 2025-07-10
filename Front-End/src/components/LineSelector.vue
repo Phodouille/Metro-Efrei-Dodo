@@ -108,12 +108,20 @@ onMounted(() => {
 
 <style scoped>
 #map {
-  width: 47vw;
-  height: 90vh;
+  width: 55vw;
+  height: 92vh;
   border-radius: 10px;
   margin-left: 36px;
-  margin-top: 50px;
-  box-shadow: 0 0 3px 2px rgba(54,54,54,0.25);
+  margin-top: 27px;
+  box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25);
+  border: solid 2px white;
+  transition: all 0.3s ease;
 }
 
+#map:hover {
+  transform: scale(1.01); /* subtle zoom */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); /* elevated shadow */
+  border-color: black;
+  cursor: pointer;
+}
 </style>
