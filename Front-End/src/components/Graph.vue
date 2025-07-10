@@ -240,7 +240,7 @@ onMounted(async () => {
   margin-left: 30px;
   /* box-shadow: 0px 0px 3px 2px rgba(54, 54, 54, 0.25); */
   margin-top: 20px;
-  border-radius: 25px;
+  border-radius: 10px;
   overflow: hidden;
   margin-right: 20px;
 
