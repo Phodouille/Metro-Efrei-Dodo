@@ -115,4 +115,5 @@ onMounted(() => {
   margin-top: 50px;
   box-shadow: 0 0 3px 2px rgba(54,54,54,0.25);
 }
+
 </style>
