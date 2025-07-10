@@ -5,12 +5,57 @@
     @click="showDetails = !showDetails"
   >
     <div class="show-details" v-if="showDetails">
-      <div v-for="element in displayDijkstraPathName" :key="element" class="li">
-        <ul>
-          <li>
-            {{ element }}
-          </li>
-        </ul>
+      <div
+        v-for="(element, index) in displayDijkstraPathName"
+        :key="element"
+        class="li"
+      >
+        <div v-if="index === 0" class="bold-start">
+          <ul>
+            <li>📍 {{ element }}</li>
+          </ul>
+        </div>
+        <div
+          v-else-if="index === displayDijkstraPathName.length - 1"
+          class="bold-end"
+        >
+          <ul>
+            <li>🏁 {{ element }}</li>
+          </ul>
+        </div>
+        <div v-else class="li-style">
+          <ul>
+            <li>
+              {{ element }}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="rectangle-co2">
+          <div class="leaf">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#108833"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-leaf-icon lucide-leaf"
+            >
+              <path
+                d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+              />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
+          </div>
+          <div class="co2-data">
+            <p>CO2 emissions for this route : {{ estimatedCo2Grams }}g</p>
+          </div>
+        </div>
       </div>
     </div>
     <div v-else>
@@ -155,6 +200,8 @@ const displayDijkstraPathLine = ref([]);
 const displayRemoveDuplicateDijkstraPathLine = ref([]);
 const displayDijkstraDuration = ref(0);
 const showDetails = ref(false);
+const estimatedDistanceKm = ref(0);
+const estimatedCo2Grams = ref(0);
 
 // Convert to array for rendering
 const displayLinesAsArray = computed(() =>
@@ -162,34 +209,45 @@ const displayLinesAsArray = computed(() =>
 );
 
 const removeConsecutiveDuplicates = () => {
-  displayRemoveDuplicateDijkstraPathLine.value = [];
-
   const arr = displayDijkstraPathLine.value;
+  const deduped = [];
+
   if (arr.length === 0) return;
 
-  const first = arr[0];
-  const rest = arr.slice(1);
-
-  // Check if the first element appears again
-  const firstAppearsAgain = rest.includes(first);
-
-  let deduped = [];
-
-  if (firstAppearsAgain) {
-    deduped.push(first);
-  }
-
-  for (let i = 1; i < arr.length; i++) {
+  for (let i = 0; i < arr.length; i++) {
     const current = arr[i];
-    const previous = arr[i - 1];
-    if (current !== previous) {
-      deduped.push(current);
+    const prev = arr[i - 1];
+    const next = arr[i + 1];
+    const next2 = arr[i + 2];
+
+    // Special rule: skip the first element if it's not equal to next and next+1
+    if (
+      i === 0 &&
+      current !== next &&
+      current !== next2
+    ) {
+      continue;
     }
+
+    // Skip if it's the same as the previous (we already added it)
+    if (current === prev) {
+      continue;
+    }
+
+    deduped.push(current);
   }
 
   displayRemoveDuplicateDijkstraPathLine.value = deduped;
 };
 
+const estimateCarbonFootprint = (numberOfStops) => {
+  estimatedDistanceKm.value = 0;
+  estimatedCo2Grams.value = 0;
+  const averageDistancePerStopKm = 0.6;
+  const emissionPerKmG = 3.5;
+  estimatedDistanceKm.value = numberOfStops * averageDistancePerStopKm;
+  estimatedCo2Grams.value = Math.round(estimatedDistanceKm.value * emissionPerKmG)/100;
+};
 watch(
   () => [
     store.pathDijkstraName,
@@ -206,6 +264,11 @@ watch(
       displayRemoveDuplicateDijkstraPathLine.value
     );
     displayDijkstraDuration.value = newDuration;
+    estimateCarbonFootprint(displayDijkstraPathLine.value.length - 1);
+    console.log(
+      "this is the estimated carbon footprint",
+      estimatedCo2Grams.value
+    );
   }
 );
 </script>
@@ -214,13 +277,23 @@ watch(
 .rectangle {
   margin-top: 20px;
   width: 540px;
-  border: solid 1px black;
+  border: solid 2px white;
   background-color: white;
   border-radius: 30px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   height: auto;
+
+  /* 👇 Add this for animation */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.rectangle:hover {
+  transform: scale(1.015); /* subtle lift */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* soft shadow */
+  border-color: black; /* optional: darken border */
 }
 
 .metro-line-logo {
@@ -305,5 +378,49 @@ ul {
 .show-details {
   margin-top: -20px;
   padding-bottom: 20px;
+}
+
+.rectangle-co2 {
+  /* width: 360px; */
+  max-width: 400px;
+  height: 50px;
+  border: solid #108833 4px;
+  margin-top: 40px;
+  margin-left: 28px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.co2-data {
+  font-size: 14px;
+  padding-left: 10px;
+}
+
+.bold-end{
+  font-weight: bolder;
+  font-size: larger;
+  display: flex;
+  margin-left: -13px;
+}
+
+.bold-start {
+  font-weight: bolder;
+  font-size: larger;
+  display: flex;
+  margin-left: -18px;
+}
+
+.bold-end li, .bold-start li {
+  list-style-type: none;
+}
+
+.li-style li{
+  list-style-type: default;
+}
+
+.leaf {
+  display: flex;
 }
 </style>
