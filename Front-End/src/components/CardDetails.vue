@@ -246,7 +246,7 @@ const estimateCarbonFootprint = (numberOfStops) => {
   const averageDistancePerStopKm = 0.6;
   const emissionPerKmG = 3.5;
   estimatedDistanceKm.value = numberOfStops * averageDistancePerStopKm;
-  estimatedCo2Grams.value = Math.round(estimatedDistanceKm.value * emissionPerKmG);
+  estimatedCo2Grams.value = Math.round(estimatedDistanceKm.value * emissionPerKmG)/100;
 };
 watch(
   () => [
@@ -277,7 +277,7 @@ watch(
 .rectangle {
   margin-top: 20px;
   width: 540px;
-  border: solid 1px white;
+  border: solid 2px white;
   background-color: white;
   border-radius: 30px;
   padding: 10px;
