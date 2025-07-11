@@ -222,7 +222,7 @@ const sendSourceDestination = () => {
 .icon-input-container {
   display: flex;
   flex-direction: row;
-  margin-top: -53px;
+  margin-top: -50px;
 }
 
 .input {
